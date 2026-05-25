@@ -1,0 +1,317 @@
+# Mini-mundo — Sistema de Gestão de Clínicas
+
+A clínica médica **Areas Health** está expandindo sua atuação no Sudeste do Brasil e solicitou à empresa **JKLE** o desenvolvimento de um software para controlar os agendamentos e a realização das consultas.
+
+A clínica atende a diversas especialidades médicas (**cardiologia, ortopedia, pediatria, entre outras**). Para suportar esse crescimento operacional, o sistema de gestão clínica será organizado em **domínios independentes**, seguindo uma arquitetura baseada em **microsserviços**.
+
+---
+
+# Domínios de Negócio
+
+## Cadastro e Gestão Administrativa
+
+Responsável pelo gerenciamento dos cadastros da clínica, incluindo:
+
+- Especialidades
+- Consultórios
+- Médicos
+- Pacientes
+- Medicamentos
+- Exames
+
+## Agendamento Clínico
+
+Responsável pelo gerenciamento operacional das consultas, incluindo:
+
+- Escalas médicas
+- Disponibilidade de horários
+- Agendamento
+- Remarcação
+- Cancelamento
+- Realização das consultas
+
+## Faturamento e Cobrança
+
+Responsável pela gestão financeira das consultas, incluindo:
+
+- Definição dos valores vigentes
+- Registro de pagamentos
+- Emissão e acompanhamento das cobranças
+
+---
+
+# Operações de Gerenciamento
+
+Os domínios deverão disponibilizar operações de gerenciamento (**CRUD**) compatíveis com suas responsabilidades, incluindo:
+
+- Criação
+- Consulta
+- Atualização
+- Gerenciamento das entidades do sistema
+
+Exemplos de entidades:
+
+- Pacientes
+- Médicos
+- Especialidades
+- Consultórios
+- Escalas de atendimento
+- Consultas
+- Registros financeiros
+
+---
+
+# Controle de Acesso
+
+O sistema deverá possuir controle de acesso baseado em perfis de usuário, restringindo funcionalidades de acordo com os seguintes papéis:
+
+- Diretor
+- Gerente
+- Médico
+- Atendente
+
+As interações dos pacientes com o sistema ocorrerão por intermédio do **atendente**, responsável pela execução das operações administrativas relacionadas ao paciente.
+
+---
+
+# Arquitetura de Microsserviços
+
+Cada domínio será implementado como um **microsserviço independente**, possuindo responsabilidade própria sobre:
+
+- Dados
+- Regras de negócio
+- Funcionalidades
+
+Cada microsserviço será responsável pelo gerenciamento de suas próprias informações, evitando compartilhamento direto de banco de dados entre os domínios.
+
+## Comunicação entre Microsserviços
+
+A comunicação entre os microsserviços ocorrerá por meio de **APIs REST**, utilizando mensagens no formato **JSON**, preservando o desacoplamento entre os domínios do sistema.
+
+## Tolerância a Falhas
+
+A arquitetura deverá garantir tolerância a falhas, permitindo que a indisponibilidade temporária de um microsserviço não interrompa completamente o funcionamento do sistema.
+
+Exemplo:
+
+- Falhas momentâneas no domínio de faturamento não deverão impedir o registro ou agendamento das consultas.
+
+## Integração entre Domínios
+
+Para a execução de determinadas funcionalidades, poderá haver comunicação entre os domínios do sistema.
+
+Exemplo:
+
+Durante o processo de agendamento, o domínio de **Agendamento Clínico** poderá consultar informações do domínio **Cadastro e Gestão Administrativa** para validar:
+
+- Pacientes
+- Médicos
+- Especialidades disponíveis
+
+Além disso, poderá interagir com o domínio **Faturamento e Cobrança** para obtenção do valor vigente da consulta.
+
+---
+
+# Regras de Negócio
+
+## Especialidades
+
+O diretor deverá manter o cadastro das especialidades atualizado.
+
+De cada especialidade, deve-se conhecer:
+
+- Nome
+- Descrição
+
+---
+
+## Consultórios
+
+O cadastro dos consultórios é mantido pelo diretor.
+
+De cada consultório, deve-se conhecer:
+
+- Número
+- Bloco
+- Tamanho
+
+---
+
+## Médicos
+
+O cadastro dos médicos que trabalham na clínica é mantido pelo gerente.
+
+Dos médicos é necessário conhecer:
+
+- Nome
+- CPF
+- CRM
+- Data de nascimento
+- Endereço
+- Telefones
+- E-mails
+- Especialidades atendidas
+
+### Regras
+
+- Um médico deve possuir **pelo menos uma especialidade** oferecida pela clínica.
+- O gerente é responsável pela gestão dos médicos e das escalas.
+- O gerente deverá analisar e **aprovar ou reprovar solicitações de cancelamento** das consultas.
+
+---
+
+## Escalas Médicas
+
+No domínio de **Agendamento Clínico**, o gerente deverá atualizar, sempre que necessário, a escala de trabalho dos médicos.
+
+Cada escala deverá conter:
+
+- Data de início da vigência
+- Data de término da vigência (quando houver)
+- Dia da semana
+- Hora inicial
+- Hora final
+
+Durante o cadastro da escala, deverá ser definido o consultório utilizado pelo médico.
+
+### Restrições
+
+Não poderá haver:
+
+- Sobreposição de escalas para um mesmo médico.
+- Sobreposição de uso dos consultórios definidos para as escalas.
+
+---
+
+## Valor das Consultas
+
+No domínio de **Faturamento e Cobrança**, o diretor será responsável por atualizar o valor vigente das consultas.
+
+Regras:
+
+- O valor **não depende da especialidade**.
+- O valor deverá possuir uma **data de vigência**.
+
+---
+
+## Pacientes
+
+Quando o paciente solicitar ao atendente o agendamento de uma consulta, deverá ser verificado se ele já possui cadastro.
+
+Caso não possua cadastro:
+
+- O atendente deverá realizá-lo.
+
+O atendente também poderá atualizar informações cadastrais do paciente sempre que solicitado.
+
+Dos pacientes é necessário conhecer:
+
+- Nome
+- CPF
+- Gênero biológico
+- Data de nascimento
+- Endereço
+- Telefones
+- E-mails
+
+---
+
+## Agendamento de Consultas
+
+Durante o processo de agendamento, o atendente solicitará ao paciente:
+
+- Médico desejado
+
+ou
+
+- Especialidade desejada
+
+Com base nessas informações, o atendente consultará as disponibilidades e apresentará as opções ao paciente.
+
+Caso o paciente tenha interesse, a consulta será agendada identificando:
+
+- Data
+- Hora
+- Médico
+
+---
+
+## Reagendamento
+
+Uma consulta agendada poderá ser reagendada pelo atendente mediante solicitação do paciente, desde que permaneça no estado **Agendada**.
+
+Durante o processo de reagendamento, o sistema deverá consultar novamente as disponibilidades do:
+
+- Médico
+- Especialidade desejada
+
+Registrando:
+
+- Nova data
+- Novo horário
+- Médico responsável (quando aplicável)
+
+---
+
+## Realização da Consulta
+
+Durante a realização de uma consulta, no domínio de **Agendamento Clínico**, deverão ser registrados:
+
+- Data e hora inicial
+
+O médico poderá:
+
+- Informar descrição do estado geral do paciente;
+- Prescrever medicamentos (dose e posologia);
+- Solicitar exames;
+- Registrar resultados de exames solicitados anteriormente.
+
+Ao final da consulta, o médico deverá encerrá-la, registrando:
+
+- Data de encerramento
+- Hora de encerramento
+
+---
+
+## Medicamentos e Exames
+
+No domínio de **Cadastro e Gestão Administrativa**, os médicos serão responsáveis pela manutenção do cadastro de medicamentos e exames.
+
+De ambos deve-se conhecer:
+
+- Nome
+- Indicação
+
+---
+
+## Pagamentos
+
+O domínio de **Faturamento e Cobrança** será responsável pelo registro dos pagamentos associados às consultas.
+
+Regras:
+
+- Utilização do valor vigente correspondente à data do agendamento.
+- O pagamento poderá ocorrer conforme as políticas operacionais da clínica.
+
+---
+
+## Estados da Consulta
+
+Uma consulta poderá assumir os seguintes estados:
+
+- **Agendada**
+- **Em Andamento**
+- **Finalizada**
+- **Cancelada**
+
+Enquanto estiver no estado **Agendada**, o atendente poderá registrar solicitações de:
+
+- Reagendamento
+- Cancelamento
+
+em nome do paciente, desde que o horário previsto ainda não tenha sido ultrapassado.
+
+As solicitações de cancelamento deverão ser analisadas pelo gerente, que poderá:
+
+- Aprovar
+- Rejeitar
