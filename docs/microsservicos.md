@@ -44,7 +44,7 @@ Responsável pelo gerenciamento dos cadastros centrais da clínica.
 |----------------|-------------------|
 | Cadastrar médico | Gerente |
 | Atualizar médico | Gerente |
-| Consultar médico | Gerente, Atendente |
+| Consultar médico | Gerente, Atendente, Paciente |
 | Associar especialidades | Gerente |
 
 ### Especialidades
@@ -116,7 +116,7 @@ Responsável pela gestão operacional das consultas e disponibilidade médica.
 
 ### Escalas Médicas
 
-**Perfil responsável:** Gerente
+**Perfis autorizados:** Gerente, Médico
 
 Funções:
 
@@ -125,6 +125,10 @@ Funções:
 - Consultar escalas
 - Validar conflitos de horários
 - Validar ocupação de consultórios
+
+O gerente realiza o gerenciamento das escalas.
+
+O médico poderá consultar suas próprias escalas de trabalho.
 
 ---
 
@@ -286,13 +290,27 @@ Funções:
 
 ### Cobranças
 
-**Perfis autorizados:** Diretor, Gerente
+#### Diretor
 
 Funções:
 
 - emitir cobrança;
-- consultar cobrança;
+- consultar cobranças;
 - acompanhar cobranças.
+
+#### Gerente
+
+Funções:
+
+- consultar cobranças;
+- acompanhar cobranças.
+
+#### Paciente
+
+Funções:
+
+- consultar suas cobranças;
+- consultar seu histórico financeiro.
 
 ---
 
@@ -311,10 +329,18 @@ GET /valores
 
 POST /valores
 
+GET /pagamentos
+
 POST /pagamentos
 
+GET /pagamentos/meus
+
 GET /cobrancas
+
+GET /cobrancas/minhas
 ```
+
+---
 
 ---
 
