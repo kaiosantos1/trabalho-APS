@@ -128,6 +128,12 @@ Atualmente o projeto encontra-se na fase de:
 * [x] Modelagem do minimundo
 * [x] Definição de microsserviços
 * [x] Diagrama de Casos de Uso
+* [x] Diagrama de Estados
+* [x] Diagrama de Implementação
+* [ ] Diagrama de Atividades (3)
+* [ ] Diagrama de Classes (Enxuto)
+* [ ] Documento de Padrões de Software
+* [ ] Documento do Sistema + Concerns
 * [ ] Modelagem complementar
 * [ ] Implementação dos serviços
 * [ ] Containerização
