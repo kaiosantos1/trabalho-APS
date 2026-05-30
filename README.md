@@ -1,6 +1,7 @@
-# Sistema de Gestão Clínica — Areas Health
+# Sistema de Gestão Clínicas 
+## Areas Health
 
-Projeto acadêmico desenvolvido para modelagem de um **Sistema de Gestão Clínica baseado em Arquitetura de Microsserviços**.
+Projeto acadêmico desenvolvido para modelagem de um **Sistema de Gestão Clínicas baseado em Arquitetura de Microsserviços**.
 
 O sistema foi projetado para atender às necessidades operacionais da clínica médica **Areas Health**, contemplando cadastro administrativo, agendamento clínico e gestão financeira das consultas.
 
