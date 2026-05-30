@@ -1,4 +1,4 @@
-# Sistema de Gestão Clínicas 
+# Sistema de Gestão de Clínicas 
 ## Areas Health
 
 Projeto acadêmico desenvolvido para modelagem de um **Sistema de Gestão Clínicas baseado em Arquitetura de Microsserviços**.
