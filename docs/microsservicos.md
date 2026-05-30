@@ -310,8 +310,8 @@ Funções:
 Funções:
 
 - consultar suas cobranças;
-- consultar seu histórico financeiro.
-
+- consultar seu histórico financeiro;
+- consultar seus pagamentos.
 ---
 
 ## Regras de Negócio
@@ -342,7 +342,6 @@ GET /cobrancas/minhas
 
 ---
 
----
 
 # Comunicação entre Microsserviços
 
