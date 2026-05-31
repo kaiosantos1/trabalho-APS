@@ -132,8 +132,8 @@ Atualmente o projeto encontra-se na fase de:
 * [x] Diagrama de Estados
 * [x] Diagrama de Implementação
 * [x] Diagrama de Atividades (3)
-* [ ] Diagrama de Classes (Enxuto)
-* [ ] Documento de Padrões de Software
+* [x] Diagrama de Classes (Enxuto)
+* [x] Documento de Padrões de Software
 * [ ] Documento do Sistema + Concerns
 * [ ] Modelagem complementar
 * [ ] Implementação dos serviços
