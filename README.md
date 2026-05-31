@@ -125,19 +125,29 @@ Tecnologias planejadas para implementação futura:
 
 Atualmente o projeto encontra-se na fase de:
 
-* [x] Levantamento de requisitos
-* [x] Modelagem do minimundo
-* [x] Definição de microsserviços
-* [x] Diagrama de Casos de Uso
-* [x] Diagrama de Estados
-* [x] Diagrama de Implementação
-* [x] Diagrama de Atividades (3)
-* [x] Diagrama de Classes (Enxuto)
-* [x] Documento de Padrões de Software
-* [ ] Documento do Sistema + Concerns
-* [ ] Modelagem complementar
-* [ ] Implementação dos serviços
-* [ ] Containerização
-* [ ] APIs REST
-* [ ] Deploy
+### Modelagem e Documentação
+- [x] Levantamento de requisitos
+- [x] Modelagem do minimundo
+- [x] Definição da arquitetura de microsserviços
+- [x] Diagramas de Casos de Uso
+- [x] Diagrama de Estados
+- [x] Diagrama de Implantação
+- [x] Diagramas de Atividades (4)
+- [x] Diagrama de Classes
+- [x] Documento de Padrões de Software
+- [x] Documento de Descrição do Sistema e Concerns
 
+### Desenvolvimento
+- [ ] Estruturação dos microsserviços
+- [ ] Implementação das entidades/modelos
+- [ ] Implementação das regras de negócio
+- [ ] Implementação das APIs REST
+- [ ] Comunicação entre microsserviços
+- [ ] Persistência de dados (MongoDB)
+- [ ] Controle de acesso por perfis (RBAC)
+
+### Infraestrutura
+- [ ] Containerização com Docker
+- [ ] Configuração do ambiente (Docker Compose)
+- [ ] Testes integrados
+- [ ] Deploy
