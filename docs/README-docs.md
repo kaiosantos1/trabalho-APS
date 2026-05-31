@@ -2,14 +2,14 @@
 
 ## Estrutura
 
-### /arquitetura/
+### arquitetura
 - `microsservicos.md` - Descrição dos 3 microsserviços e seus endpoints
 
-### /diagramas/
+### diagramas
 - `casos-de-uso/` - Diagramas de casos de uso (2 arquivos)
 - `atividades/` - Diagramas de atividades (Agendar, Cancelar, Realizar e Criar Escala)
 - `estados/` - Diagrama de estados da Consulta
 - `implantacao/` - Diagrama de implantação com Docker
 
-### /minimundo/
+### minimundo
 - `minimundo.md` - Descrição completa do domínio do sistema
