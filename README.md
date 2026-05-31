@@ -131,7 +131,7 @@ Atualmente o projeto encontra-se na fase de:
 * [x] Diagrama de Casos de Uso
 * [x] Diagrama de Estados
 * [x] Diagrama de Implementação
-* [ ] Diagrama de Atividades (3)
+* [x] Diagrama de Atividades (3)
 * [ ] Diagrama de Classes (Enxuto)
 * [ ] Documento de Padrões de Software
 * [ ] Documento do Sistema + Concerns
