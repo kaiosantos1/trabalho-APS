@@ -7,7 +7,7 @@
 
 ### /diagramas/
 - `casos-de-uso/` - Diagramas de casos de uso (2 arquivos)
-- `atividades/` - Diagramas de atividades (Agendar, Cancelar, Realizar e Escala)
+- `atividades/` - Diagramas de atividades (Agendar, Cancelar, Realizar e Criar Escala)
 - `estados/` - Diagrama de estados da Consulta
 - `implantacao/` - Diagrama de implantação com Docker
 
