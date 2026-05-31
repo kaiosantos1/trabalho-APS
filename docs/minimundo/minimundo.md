@@ -156,7 +156,6 @@ Dos pacientes é preciso conhecer:
 
 * Nome;
 * CPF;
-* Gênero biológico;
 * Data de nascimento;
 * Endereço;
 * Telefones;
