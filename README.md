@@ -136,6 +136,7 @@ Atualmente o projeto encontra-se na fase de:
 - [x] Diagrama de Classes
 - [x] Documento de Padrões de Software
 - [x] Documento de Descrição do Sistema e Concerns
+- [x] API Contracts
 
 ### Desenvolvimento
 - [ ] Estruturação dos microsserviços
