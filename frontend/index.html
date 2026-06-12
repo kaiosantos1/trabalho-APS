@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Areas Health</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1><p>
+    Cadastro de Especialidades, Pacientes e Médicos 
+</p> </h1>
+    <p>Frontend integrado ao Cadastro Service</p>
+
+    <section>
+        <h2>Especialidades</h2>
+        <input id="especialidadeNome" placeholder="Nome da especialidade">
+        <button onclick="cadastrarEspecialidade()">Cadastrar</button>
+        <ul id="listaEspecialidades"></ul>
+    </section>
+
+    <section>
+        <h2>Pacientes</h2>
+        <input id="pacienteNome" placeholder="Nome do paciente">
+        <input id="pacienteCpf" placeholder="CPF">
+        <input id="pacienteTelefone" placeholder="Telefone">
+        <input id="pacienteEmail" placeholder="E-mail">
+        <button onclick="cadastrarPaciente()">Cadastrar</button>
+        <ul id="listaPacientes"></ul>
+    </section>
+
+    <section>
+        <h2>Médicos</h2>
+        <input id="medicoNome" placeholder="Nome do médico">
+        <input id="medicoCrm" placeholder="CRM">
+        <input id="medicoEspecialidadeId" placeholder="ID da especialidade">
+        <button onclick="cadastrarMedico()">Cadastrar</button>
+        <ul id="listaMedicos"></ul>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
