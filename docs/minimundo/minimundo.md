@@ -100,7 +100,7 @@ Dos médicos é preciso conhecer:
 * E-mails;
 * Especialidades atendidas.
 
-Um médico deve ser especializado em, pelo menos, uma das especialidades oferecidas pela clínica.
+Um médico deve ser especializado em, pelo menos, uma das especialidades oferecidas pela clínica, podendo atuar em múltiplas especialidades.
 
 Além da gestão dos médicos e das escalas, o gerente será responsável por:
 
@@ -137,13 +137,17 @@ O valor:
 * Não depende da especialidade;
 * Deve possuir data de vigência.
 
-O diretor também poderá emitir cobranças referentes às consultas realizadas.
+O diretor também poderá emitir cobranças referentes às consultas finalizadas.
+
+No momento do agendamento, o valor vigente deverá ser associado à consulta, permanecendo registrado mesmo que ocorram alterações futuras na tabela de preços.
 
 ### Pacientes e Agendamento
 
 No domínio de **Agendamento Clínico**, o paciente poderá solicitar diretamente o agendamento de uma consulta pelo sistema ou realizá-lo por intermédio do atendente.
 
 Antes do agendamento, deverá ser verificado se o paciente já possui cadastro ativo.
+
+Todo paciente cadastrado será considerado ativo por padrão.
 
 Caso não possua cadastro:
 
@@ -236,9 +240,9 @@ Tanto dos medicamentos quanto dos exames deve-se conhecer:
 
 ### Pagamentos
 
-O domínio de **Faturamento e Cobrança** será responsável pelo registro dos pagamentos associados às consultas, utilizando o valor vigente correspondente à data do agendamento.
+O domínio de **Faturamento e Cobrança** será responsável pelo registro dos pagamentos associados às consultas, utilizando o valor vigente registrado no momento do agendamento.
 
-O pagamento poderá ocorrer conforme as políticas operacionais da clínica.
+Os pagamentos deverão estar vinculados às consultas realizadas e registrados para fins de acompanhamento financeiro.
 
 O paciente poderá consultar diretamente pelo sistema seu histórico de:
 
@@ -248,6 +252,8 @@ O paciente poderá consultar diretamente pelo sistema seu histórico de:
 Isso permitirá o acompanhamento financeiro de seus atendimentos.
 
 ### Estados da Consulta
+
+As consultas serão criadas inicialmente no estado **Agendada**.
 
 Uma consulta poderá assumir os seguintes estados:
 
