@@ -1,41 +1,34 @@
-# API Contracts - Sistema de Gestão Clínica APS Health
+# API Contracts - Sistema de Gestão Clínica APS Health / Areas Health
 
 ## Visão Geral
 
-Este documento apresenta uma proposta inicial dos contratos das APIs REST dos microsserviços do sistema de gestão clínica APS Health.
+Este documento apresenta os contratos das APIs REST dos microsserviços do sistema
+de gestão clínica, **atualizado para refletir o que está efetivamente implementado**.
 
-Os contratos foram definidos com base no minimundo, nos diagramas produzidos e nos requisitos levantados até o momento.
+Formato das mensagens: JSON.
 
-Formato das mensagens:
+Portas dos serviços:
 
-* JSON
+| Serviço             | Porta | Situação      |
+| ------------------- | ----- | ------------- |
+| Cadastro Service    | 5001  | Implementado  |
+| Faturamento Service | 5002  | Implementado  |
+| Agendamento Service | 5003  | Implementado  |
 
----
+> Persistência: os três serviços armazenam os dados **em memória** nesta versão
+> (sem compartilhamento entre serviços). A persistência definitiva (MongoDB) está
+> prevista para evolução futura.
 
-# 1. Cadastro Service
-
-Responsável pelo gerenciamento dos dados cadastrais do sistema.
-
-## Implementação Atual
-
-O Cadastro Service foi implementado utilizando Flask e APIs REST com mensagens em formato JSON.
-
-Atualmente o serviço disponibiliza endpoints para gerenciamento de:
-
-* Pacientes
-* Médicos
-* Especialidades
-* Consultórios
-* Medicamentos
-* Exames
-
-Os dados são armazenados temporariamente em memória para permitir validação dos contratos REST e integração inicial entre os microsserviços.
+Cada serviço expõe também `GET /health` para verificação de disponibilidade.
 
 ---
+
+# 1. Cadastro Service (porta 5001)
+
+Responsável pelos dados cadastrais do sistema. **Implementado** em Flask com
+Blueprints por entidade.
 
 ## Pacientes
-
-### Estrutura
 
 ```json
 {
@@ -57,11 +50,7 @@ Os dados são armazenados temporariamente em memória para permitir validação 
 | GET    | /pacientes/{id} | Consultar paciente |
 | PUT    | /pacientes/{id} | Atualizar paciente |
 
----
-
 ## Médicos
-
-### Estrutura
 
 ```json
 {
@@ -77,7 +66,8 @@ Os dados são armazenados temporariamente em memória para permitir validação 
 }
 ```
 
-Observação: um médico pode possuir uma ou mais especialidades, conforme definido no minimundo.
+Regra: um médico deve possuir **pelo menos uma** especialidade
+(`especialidades_ids` não pode ser vazio; caso contrário retorna 400).
 
 | Método | Endpoint      | Descrição        |
 | ------ | ------------- | ---------------- |
@@ -86,18 +76,10 @@ Observação: um médico pode possuir uma ou mais especialidades, conforme defin
 | GET    | /medicos/{id} | Consultar médico |
 | PUT    | /medicos/{id} | Atualizar médico |
 
----
-
 ## Especialidades
 
-### Estrutura
-
 ```json
-{
-  "id": 1,
-  "nome": "Cardiologia",
-  "descricao": "Especialidade relacionada ao diagnóstico e tratamento de doenças cardiovasculares."
-}
+{ "id": 1, "nome": "Cardiologia", "descricao": "Doenças cardiovasculares." }
 ```
 
 | Método | Endpoint             | Descrição               |
@@ -107,19 +89,10 @@ Observação: um médico pode possuir uma ou mais especialidades, conforme defin
 | GET    | /especialidades/{id} | Consultar especialidade |
 | PUT    | /especialidades/{id} | Atualizar especialidade |
 
----
-
 ## Consultórios
 
-### Estrutura
-
 ```json
-{
-  "id": 1,
-  "numero": "101",
-  "bloco": "A",
-  "tamanho": "Médio"
-}
+{ "id": 1, "numero": "101", "bloco": "A", "tamanho": "Médio" }
 ```
 
 | Método | Endpoint           | Descrição             |
@@ -129,18 +102,10 @@ Observação: um médico pode possuir uma ou mais especialidades, conforme defin
 | GET    | /consultorios/{id} | Consultar consultório |
 | PUT    | /consultorios/{id} | Atualizar consultório |
 
----
-
 ## Medicamentos
 
-### Estrutura
-
 ```json
-{
-  "id": 1,
-  "nome": "Dipirona",
-  "indicacao": "Tratamento de dor e febre."
-}
+{ "id": 1, "nome": "Dipirona", "indicacao": "Dor e febre." }
 ```
 
 | Método | Endpoint           | Descrição             |
@@ -150,18 +115,10 @@ Observação: um médico pode possuir uma ou mais especialidades, conforme defin
 | GET    | /medicamentos/{id} | Consultar medicamento |
 | PUT    | /medicamentos/{id} | Atualizar medicamento |
 
----
-
 ## Exames
 
-### Estrutura
-
 ```json
-{
-  "id": 1,
-  "nome": "Hemograma",
-  "indicacao": "Avaliação geral da saúde do paciente."
-}
+{ "id": 1, "nome": "Hemograma", "indicacao": "Avaliação geral." }
 ```
 
 | Método | Endpoint     | Descrição       |
@@ -173,117 +130,176 @@ Observação: um médico pode possuir uma ou mais especialidades, conforme defin
 
 ---
 
-# 2. Agendamento Service
+# 2. Agendamento Service (porta 5003)
 
-Responsável pelo gerenciamento das consultas, escalas médicas e cancelamentos.
+Responsável pelas consultas, escalas médicas e solicitações de cancelamento.
+**Implementado** em Flask com Blueprints. Ao agendar, comunica-se com o Cadastro
+(validação) e o Faturamento (valor vigente) — ver seção 4.
 
 ## Consultas
 
-| Método | Endpoint                               | Descrição                      |
-| ------ | -------------------------------------- | ------------------------------ |
-| POST   | /consultas                             | Agendar consulta               |
-| GET    | /consultas                             | Listar consultas               |
-| GET    | /consultas/{id}                        | Consultar consulta             |
-| PUT    | /consultas/{id}/reagendar              | Remarcar consulta              |
-| POST   | /consultas/{id}/solicitar-cancelamento | Solicitar cancelamento         |
-| GET    | /consultas/disponibilidade             | Consultar horários disponíveis |
+Estrutura da consulta:
 
----
+```json
+{
+  "id": 1,
+  "paciente_id": 1,
+  "medico_id": 1,
+  "especialidade_id": 1,
+  "data_hora": "2026-06-20T10:00:00",
+  "estado": "AGENDADA",
+  "data_hora_inicio": null,
+  "data_hora_encerramento": null,
+  "descricao_estado_geral": null,
+  "valor_consulta": 250.0,
+  "prescricoes": [],
+  "exames_solicitados": []
+}
+```
 
-## Realização da Consulta
+Estados possíveis: `AGENDADA`, `EM_ANDAMENTO`, `FINALIZADA`, `CANCELADA`.
 
-| Método | Endpoint                           | Descrição                     |
-| ------ | ---------------------------------- | ----------------------------- |
-| PUT    | /consultas/{id}/iniciar            | Iniciar consulta              |
-| PUT    | /consultas/{id}/finalizar          | Finalizar consulta            |
-| POST   | /consultas/{id}/prescricoes        | Registrar prescrição          |
-| POST   | /consultas/{id}/exames-solicitados | Solicitar exame               |
-| POST   | /consultas/{id}/resultados-exames  | Registrar resultado de exame* |
+| Método | Endpoint                                  | Descrição                          |
+| ------ | ----------------------------------------- | ---------------------------------- |
+| POST   | /consultas                                | Agendar consulta                   |
+| GET    | /consultas                                | Listar consultas (filtros opcionais: `paciente_id`, `medico_id`) |
+| GET    | /consultas/{id}                           | Consultar consulta                 |
+| GET    | /consultas/disponibilidade                | Consultar disponibilidade (`medico_id`, `data`) |
+| PUT    | /consultas/{id}/reagendar                 | Reagendar (apenas se AGENDADA)     |
+| PUT    | /consultas/{id}/iniciar                   | Iniciar consulta (→ EM_ANDAMENTO)  |
+| PUT    | /consultas/{id}/finalizar                 | Finalizar consulta (→ FINALIZADA)  |
+| POST   | /consultas/{id}/prescricoes               | Registrar prescrição               |
+| POST   | /consultas/{id}/exames-solicitados        | Solicitar exame                    |
+| POST   | /consultas/{id}/resultados-exames         | Registrar resultado de exame       |
+| POST   | /consultas/{id}/solicitar-cancelamento    | Solicitar cancelamento             |
 
-* Endpoint sujeito a refinamentos durante a implementação.
+Regras de estado aplicadas: só é possível reagendar/cancelar uma consulta
+`AGENDADA`; iniciar exige `AGENDADA`; finalizar exige `EM_ANDAMENTO`.
 
----
+## Solicitações de Cancelamento
 
-## Cancelamentos
+```json
+{ "id": 1, "consulta_id": 1, "status": "PENDENTE" }
+```
 
-| Método | Endpoint                                 | Descrição                     |
-| ------ | ---------------------------------------- | ----------------------------- |
-| GET    | /solicitacoes-cancelamento/pendentes     | Listar solicitações pendentes |
-| PUT    | /solicitacoes-cancelamento/{id}/aprovar  | Aprovar cancelamento          |
-| PUT    | /solicitacoes-cancelamento/{id}/rejeitar | Rejeitar cancelamento         |
+Status: `PENDENTE`, `APROVADA`, `REJEITADA`. Ao aprovar, a consulta passa a
+`CANCELADA`; ao rejeitar, permanece `AGENDADA`.
 
----
+| Método | Endpoint                                   | Descrição                     |
+| ------ | ------------------------------------------ | ----------------------------- |
+| GET    | /solicitacoes-cancelamento/pendentes       | Listar pendentes (gerente)    |
+| PUT    | /solicitacoes-cancelamento/{id}/aprovar    | Aprovar cancelamento          |
+| PUT    | /solicitacoes-cancelamento/{id}/rejeitar   | Rejeitar cancelamento         |
 
 ## Escalas Médicas
+
+```json
+{
+  "id": 1,
+  "medico_id": 1,
+  "consultorio_id": 1,
+  "data_inicio_vigencia": "2026-06-01",
+  "data_fim_vigencia": null,
+  "dia_semana": "Segunda",
+  "hora_inicial": "08:00",
+  "hora_final": "12:00"
+}
+```
+
+Na criação/atualização são validados conflito de horário do médico e ocupação do
+consultório (retorna 409 em caso de conflito).
 
 | Método | Endpoint      | Descrição           |
 | ------ | ------------- | ------------------- |
 | POST   | /escalas      | Criar escala médica |
-| GET    | /escalas      | Listar escalas      |
+| GET    | /escalas      | Listar escalas (filtro opcional: `medico_id`) |
 | GET    | /escalas/{id} | Consultar escala    |
 | PUT    | /escalas/{id} | Atualizar escala    |
 
 ---
 
-# 3. Faturamento Service
+# 3. Faturamento Service (porta 5002)
 
-Responsável pela gestão financeira da clínica.
+Responsável pela gestão financeira. **Implementado** em Flask com Blueprints.
 
 ## Valores de Consulta
 
+```json
+{ "id": 1, "valor": 250.0, "data_vigencia": "2026-06-01" }
+```
+
 | Método | Endpoint         | Descrição               |
 | ------ | ---------------- | ----------------------- |
+| GET    | /valores         | Listar valores          |
+| POST   | /valores         | Definir valor           |
 | GET    | /valores/vigente | Consultar valor vigente |
-| POST   | /valores         | Definir valor vigente   |
+| GET    | /valores/{id}    | Consultar valor por id  |
+| PUT    | /valores/{id}    | Atualizar valor         |
 
----
+> `GET /valores/vigente` retorna o valor vigente (último cadastrado) e é
+> consumido pelo Agendamento no momento do agendamento.
 
 ## Pagamentos
 
+```json
+{ "id": 1, "data_pagamento": "2026-06-20", "status": "PAGO" }
+```
+
 | Método | Endpoint         | Descrição           |
 | ------ | ---------------- | ------------------- |
+| GET    | /pagamentos      | Listar pagamentos   |
 | POST   | /pagamentos      | Registrar pagamento |
 | GET    | /pagamentos/{id} | Consultar pagamento |
-
----
+| PUT    | /pagamentos/{id} | Atualizar pagamento |
 
 ## Cobranças
 
+```json
+{ "id": 1, "valor": 250.0, "data_emissao": "2026-06-20", "status": "EMITIDA" }
+```
+
 | Método | Endpoint        | Descrição          |
 | ------ | --------------- | ------------------ |
+| GET    | /cobrancas      | Listar cobranças   |
 | POST   | /cobrancas      | Emitir cobrança    |
 | GET    | /cobrancas/{id} | Consultar cobrança |
+| PUT    | /cobrancas/{id} | Atualizar cobrança |
 
 ---
 
-# 4. Comunicação Entre Microsserviços
+# 4. Comunicação Entre Microsserviços (Implementada)
 
-As seguintes comunicações foram identificadas durante a modelagem do sistema.
+A comunicação entre serviços é feita via REST/JSON e está **implementada** no
+Agendamento Service (módulo `services/integracao.py`).
 
-| Origem              | Destino             | Objetivo                        |
-| ------------------- | ------------------- | ------------------------------- |
-| Agendamento Service | Cadastro Service    | Validar paciente                |
-| Agendamento Service | Cadastro Service    | Validar médico                  |
-| Agendamento Service | Cadastro Service    | Validar especialidade           |
-| Agendamento Service | Faturamento Service | Obter valor vigente da consulta |
+| Origem      | Destino     | Endpoint consumido          | Objetivo                        |
+| ----------- | ----------- | --------------------------- | ------------------------------- |
+| Agendamento | Cadastro    | GET /pacientes/{id}         | Validar paciente                |
+| Agendamento | Cadastro    | GET /medicos/{id}           | Validar médico                  |
+| Agendamento | Cadastro    | GET /especialidades/{id}    | Validar especialidade           |
+| Agendamento | Faturamento | GET /valores/vigente        | Obter valor vigente da consulta |
 
-Nesta primeira versão a comunicação foi definida por APIs REST retornando JSON. O Cadastro Service expõe endpoints para pacientes, médicos, especialidades, consultórios, medicamentos e exames. Outros serviços, como Agendamento e Faturamento, podem consumir esses endpoints.
+As URLs dos serviços são configuráveis por variáveis de ambiente
+(`CADASTRO_URL`, `FATURAMENTO_URL`), o que permite execução local e em containers.
+
+## Tolerância a Falhas (Implementada)
+
+As chamadas entre serviços usam **timeout**, e o comportamento em caso de falha
+foi implementado conforme os requisitos:
+
+- **Faturamento indisponível:** o agendamento prossegue normalmente; a consulta é
+  criada com `valor_consulta` nulo (degradação graciosa).
+- **Cadastro indisponível:** o serviço não quebra; a operação que dependia da
+  validação retorna `503` de forma controlada.
 
 ---
 
 # 5. Observações
 
-Este documento representa uma especificação inicial dos contratos REST do sistema.
+Itens ainda **não implementados** (previstos para evolução):
 
-Detalhes relacionados a:
-
-* autenticação;
-* autorização;
-* versionamento;
-* formatos completos de request e response;
-* códigos HTTP;
-* tratamento de erros;
-* mecanismos de segurança;
-* estratégias de comunicação entre microsserviços;
-
-serão refinados durante a fase de implementação do projeto.
+- Persistência definitiva (MongoDB) — atualmente os dados são mantidos em memória;
+- API Gateway — modelado no diagrama de implantação, ainda não implementado;
+- Autenticação/autorização (RBAC) — modelado conceitualmente, sem implementação
+  técnica;
+- Versionamento de API, paginação e padronização completa de códigos de erro.
