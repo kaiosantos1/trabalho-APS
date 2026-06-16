@@ -19,7 +19,9 @@ def criar_consultorio():
 
     novo_consultorio = {
         "id": proximo_id_consultorio,
-        "nome": dados.get("nome")
+        "numero": dados.get("numero"),
+        "bloco": dados.get("bloco"),
+        "tamanho": dados.get("tamanho")
     }
 
     consultorios.append(novo_consultorio)
@@ -43,7 +45,9 @@ def atualizar_consultorio(id):
 
     for consultorio in consultorios:
         if consultorio["id"] == id:
-            consultorio["nome"] = dados.get("nome", consultorio["nome"])
+            consultorio["numero"] = dados.get("numero", consultorio["numero"])
+            consultorio["bloco"] = dados.get("bloco", consultorio["bloco"])
+            consultorio["tamanho"] = dados.get("tamanho", consultorio["tamanho"])
             return jsonify(consultorio)
 
     return jsonify({"erro": "Consultório não encontrado"}), 404

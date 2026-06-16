@@ -19,7 +19,8 @@ def criar_especialidade():
 
     nova_especialidade = {
         "id": proximo_id_especialidade,
-        "nome": dados.get("nome")
+        "nome": dados.get("nome"),
+        "descricao": dados.get("descricao")
     }
 
     especialidades.append(nova_especialidade)
@@ -44,6 +45,7 @@ def atualizar_especialidade(id):
     for especialidade in especialidades:
         if especialidade["id"] == id:
             especialidade["nome"] = dados.get("nome", especialidade["nome"])
+            especialidade["descricao"] = dados.get("descricao", especialidade["descricao"])
             return jsonify(especialidade)
 
     return jsonify({"erro": "Especialidade não encontrada"}), 404

@@ -19,7 +19,8 @@ def criar_exame():
 
     novo_exame = {
         "id": proximo_id_exame,
-        "nome": dados.get("nome")
+        "nome": dados.get("nome"),
+        "indicacao": dados.get("indicacao")
     }
 
     exames.append(novo_exame)
@@ -44,6 +45,7 @@ def atualizar_exame(id):
     for exame in exames:
         if exame["id"] == id:
             exame["nome"] = dados.get("nome", exame["nome"])
+            exame["indicacao"] = dados.get("indicacao", exame["indicacao"])
             return jsonify(exame)
 
     return jsonify({"erro": "Exame não encontrado"}), 404

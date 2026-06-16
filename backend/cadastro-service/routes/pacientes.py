@@ -21,8 +21,11 @@ def criar_paciente():
         "id": proximo_id_paciente,
         "nome": dados.get("nome"),
         "cpf": dados.get("cpf"),
-        "telefone": dados.get("telefone"),
-        "email": dados.get("email")
+        "data_nascimento": dados.get("data_nascimento"),
+        "endereco": dados.get("endereco"),
+        "telefones": dados.get("telefones", []),
+        "emails": dados.get("emails", []),
+        "ativo": dados.get("ativo", True)
     }
 
     pacientes.append(novo_paciente)
@@ -48,8 +51,11 @@ def atualizar_paciente(id):
         if paciente["id"] == id:
             paciente["nome"] = dados.get("nome", paciente["nome"])
             paciente["cpf"] = dados.get("cpf", paciente["cpf"])
-            paciente["telefone"] = dados.get("telefone", paciente["telefone"])
-            paciente["email"] = dados.get("email", paciente["email"])
+            paciente["data_nascimento"] = dados.get("data_nascimento", paciente["data_nascimento"])
+            paciente["endereco"] = dados.get("endereco", paciente["endereco"])
+            paciente["telefones"] = dados.get("telefones", paciente["telefones"])
+            paciente["emails"] = dados.get("emails", paciente["emails"])
+            paciente["ativo"] = dados.get("ativo", paciente["ativo"])
             return jsonify(paciente)
 
     return jsonify({"erro": "Paciente não encontrado"}), 404

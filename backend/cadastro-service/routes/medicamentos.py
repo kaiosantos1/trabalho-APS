@@ -19,7 +19,8 @@ def criar_medicamento():
 
     novo_medicamento = {
         "id": proximo_id_medicamento,
-        "nome": dados.get("nome")
+        "nome": dados.get("nome"),
+        "indicacao": dados.get("indicacao")
     }
 
     medicamentos.append(novo_medicamento)
@@ -44,6 +45,7 @@ def atualizar_medicamento(id):
     for medicamento in medicamentos:
         if medicamento["id"] == id:
             medicamento["nome"] = dados.get("nome", medicamento["nome"])
+            medicamento["indicacao"] = dados.get("indicacao", medicamento["indicacao"])
             return jsonify(medicamento)
 
     return jsonify({"erro": "Medicamento não encontrado"}), 404
