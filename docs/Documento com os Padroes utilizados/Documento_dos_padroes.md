@@ -1,309 +1,264 @@
 # Documento de Padrões de Software
 
-## Sistema de Gestão Clínica APS Health
+## Sistema de Gestão Clínica Areas Health
 
-**Versão:** 1.0
+**Versão:** 1.1
+**Data:** junho/2026
 **Arquitetura:** Microsserviços
+
+> **Observação:** itens marcados como **(Planejado)** ou **(Futuro)** ainda não
+> foram implementados; os demais já se encontram implementados no código.
 
 ---
 
 # 1. Introdução
 
-Este documento descreve os padrões de software adotados no desenvolvimento do sistema **APS Health**.
+Este documento descreve os padrões de software adotados no sistema **Areas Health**,
+um sistema de gestão clínica baseado em arquitetura de microsserviços.
 
-Os padrões apresentados foram selecionados considerando os requisitos do projeto, o minimundo definido, os diagramas UML produzidos e a arquitetura baseada em microsserviços.
-
-O objetivo é favorecer:
-
-* separação de responsabilidades;
-* modularidade;
-* escalabilidade;
-* organização por domínio de negócio;
-* segurança baseada em perfis.
+Diferentemente da versão anterior — em que a maioria dos padrões estava apenas
+modelada — esta versão reflete o **estado atual de implementação**: três
+microsserviços independentes em execução (Cadastro, Agendamento e Faturamento),
+comunicando-se via REST/JSON, com tolerância a falhas implementada. Os padrões
+ainda não codificados estão sinalizados como planejados ou futuros.
 
 ---
 
 # 2. Padrões Arquiteturais
 
-## 2.1. Arquitetura de Microsserviços
+## 2.1. Arquitetura de Microsserviços — Implementado
 
-### Onde foi aplicado
+**Onde foi aplicado:** organização geral do sistema.
 
-Organização geral do sistema.
+**Descrição:** o sistema foi dividido em serviços independentes, cada um
+responsável por um domínio de negócio e executável de forma isolada.
 
-### Descrição
+| Microsserviço       | Porta | Responsabilidade                                                       |
+| ------------------- | ----- | ---------------------------------------------------------------------- |
+| Cadastro Service    | 5001  | Pacientes, médicos, especialidades, consultórios, medicamentos, exames |
+| Agendamento Service | 5003  | Consultas, escalas médicas, cancelamentos, realização de consultas     |
+| Faturamento Service | 5002  | Valores de consulta, pagamentos, cobranças                             |
 
-O sistema foi dividido em serviços independentes, cada um responsável por um domínio de negócio específico.
+**Por que foi utilizado:** separação dos domínios, menor acoplamento, evolução e
+implantação independentes de cada serviço.
 
-| Microsserviço       | Responsabilidade                                                                         |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| Cadastro Service    | gerenciamento de pacientes, médicos, especialidades, consultórios, medicamentos e exames |
-| Agendamento Service | gerenciamento de consultas, escalas médicas e cancelamentos                              |
-| Faturamento Service | gerenciamento de cobranças, pagamentos e valores de consulta                             |
+## 2.2. Database per Service — Parcialmente implementado
 
-### Por que foi utilizado
+**Onde foi aplicado:** persistência de cada microsserviço.
 
-* separação dos domínios do sistema;
-* menor acoplamento entre funcionalidades;
-* maior organização arquitetural;
-* possibilidade de evolução independente dos serviços.
+**Descrição:** cada microsserviço gerencia exclusivamente seus próprios dados, sem
+compartilhamento direto entre domínios. Atualmente os dados são mantidos **em
+memória** em cada serviço, garantindo o isolamento lógico previsto pelo padrão.
 
----
+**Situação:** o isolamento por serviço já está implementado; a **persistência
+definitiva em banco de dados (MongoDB) é planejada** para a evolução do projeto.
 
-## 2.2. Database per Service
-
-### Onde foi aplicado
-
-Persistência dos dados de cada microsserviço.
-
-### Descrição
-
-Cada microsserviço possui seu próprio banco de dados, evitando compartilhamento direto entre domínios.
-
-### Estrutura modelada
-
-| Microsserviço       | Banco               |
-| ------------------- | ------------------- |
-| Cadastro Service    | mongodb-cadastro    |
-| Agendamento Service | mongodb-agendamento |
-| Faturamento Service | mongodb-faturamento |
-
-### Por que foi utilizado
-
-* isolamento dos dados;
-* independência entre domínios;
-* redução de acoplamento entre serviços.
+**Por que foi utilizado:** isolamento dos dados, independência entre domínios e
+redução de acoplamento.
 
 ---
 
-## 2.3. Modularização por Rotas (Blueprints)
+# 3. Padrões de Organização de Código
 
-### Onde foi aplicado
+## 3.1. Modularização por Blueprints — Implementado
 
-Implementação do Cadastro Service.
+**Onde foi aplicado:** Cadastro, Agendamento e Faturamento Services.
 
-### Descrição
+**Descrição:** cada serviço organiza suas rotas em **Blueprints do Flask**,
+separadas por entidade ou domínio (ex.: `pacientes`, `medicos`, `consultas`,
+`escalas`, `cancelamentos`, `valores`, `cobrancas`, `pagamentos`).
 
-O Cadastro Service foi organizado utilizando **Blueprints do Flask**, separando as rotas por entidade de negócio.
+**Por que foi utilizado:** melhor organização, menor complexidade do arquivo
+principal e facilidade de manutenção.
 
-Estrutura utilizada:
+## 3.2. Separação de Responsabilidades — Implementado
 
-```plaintext
-routes/
-├── pacientes.py
-├── medicos.py
-├── especialidades.py
-├── consultorios.py
-├── medicamentos.py
-└── exames.py
-```
+**Onde foi aplicado:** os três serviços.
 
-### Por que foi utilizado
+**Descrição:** o `app.py` de cada serviço cuida apenas da inicialização e do
+registro das rotas; a lógica de cada endpoint fica nos módulos específicos.
 
-* melhor organização do código;
-* redução da complexidade do arquivo principal;
-* facilidade de manutenção;
-* separação clara das responsabilidades.
+**Por que foi utilizado:** reduz acoplamento, melhora a legibilidade e facilita a
+evolução.
 
----
+## 3.3. Repositório em Memória — Estrutura inicial
 
-## 2.4. Separação de Responsabilidades
+**Onde foi aplicado:** Agendamento Service (`repositorio.py`).
 
-### Onde foi aplicado
-
-Implementação do Cadastro Service.
-
-### Descrição
-
-O arquivo principal da aplicação (`app.py`) ficou responsável apenas pela inicialização do serviço, configuração do Flask e registro das rotas.
-
-A lógica dos endpoints foi distribuída nos módulos específicos de cada entidade.
-
-### Por que foi utilizado
-
-* reduz acoplamento;
-* melhora legibilidade;
-* facilita futuras evoluções do sistema.
+**Descrição:** o Agendamento centraliza o acesso aos dados (consultas, escalas e
+solicitações) em um módulo único, isolando o armazenamento das rotas. É uma
+estrutura inicial no sentido do **Repository Pattern**: quando a persistência
+definitiva for adotada, apenas esse módulo precisará mudar.
 
 ---
 
-# 3. Padrões de Comunicação
+# 4. Padrões de Comunicação
 
-## 3.1. API Gateway
+## 4.1. API REST — Implementado
 
-### Onde foi aplicado
+**Onde foi aplicado:** comunicação cliente↔serviços e entre serviços.
 
-Modelagem arquitetural do sistema.
+**Descrição:** todos os serviços expõem APIs REST com mensagens em **JSON**. Os
+contratos completos estão no documento de API Contracts.
 
-### Descrição
+**Por que foi utilizado:** simplicidade, ampla compatibilidade e desacoplamento.
 
-Foi modelado um **API Gateway** como ponto único de entrada do sistema.
+## 4.2. Comunicação entre Microsserviços — Implementado
 
-Todas as requisições do cliente passam inicialmente pelo gateway, que direciona a solicitação ao microsserviço responsável.
+**Onde foi aplicado:** Agendamento Service (`services/integracao.py`).
 
-### Responsabilidades modeladas
+**Descrição:** ao agendar uma consulta, o Agendamento consome outros serviços:
 
-* roteamento de requisições;
-* ponto único de acesso;
-* centralização futura das políticas de segurança;
-* suporte ao controle de acesso por perfis.
+| Origem      | Destino     | Objetivo                        |
+| ----------- | ----------- | ------------------------------- |
+| Agendamento | Cadastro    | Validar paciente, médico, especialidade |
+| Agendamento | Faturamento | Obter o valor vigente da consulta       |
 
-### Por que foi utilizado
+Toda a integração está isolada em um módulo próprio, configurável por variáveis de
+ambiente (`CADASTRO_URL`, `FATURAMENTO_URL`), o que viabiliza a execução local e
+em containers.
 
-* simplifica a comunicação com o cliente;
-* reduz necessidade de acesso direto aos serviços internos;
-* centraliza responsabilidades comuns.
+## 4.3. API Gateway — Modelado (Planejado)
 
----
+**Onde foi aplicado:** diagrama de implantação.
 
-## 3.2. Comunicação REST
-
-### Onde foi aplicada
-
-Comunicação entre frontend e microsserviços e entre microsserviços.
-
-### Descrição
-
-A arquitetura utiliza APIs REST com troca de mensagens em formato JSON.
-
-O Cadastro Service já disponibiliza endpoints REST para:
-
-* pacientes;
-* médicos;
-* especialidades;
-* consultórios;
-* medicamentos;
-* exames.
-
-Outros serviços, como Agendamento e Faturamento, poderão consumir esses endpoints durante a integração.
-
-### Por que foi utilizado
-
-* simplicidade de implementação;
-* ampla compatibilidade entre tecnologias;
-* desacoplamento entre serviços;
-* facilidade de integração.
+**Descrição:** foi modelado um API Gateway como ponto único de entrada e
+roteamento. **Ainda não implementado** — atualmente os clientes acessam os
+serviços diretamente.
 
 ---
 
-# 4. Padrões de Segurança
+# 5. Padrões de Resiliência / Tolerância a Falhas
 
-## 4.1. RBAC — Role-Based Access Control
+## 5.1. Timeout — Implementado
 
-### Onde foi aplicado
+**Descrição:** todas as chamadas entre serviços usam um tempo limite (timeout)
+configurável, evitando que uma dependência lenta trave o serviço chamador.
 
-Modelagem das permissões e responsabilidades do sistema.
+## 5.2. Degradação Graciosa (Fallback) — Implementado
 
-### Descrição
+**Onde foi aplicado:** Agendamento Service.
 
-O sistema utiliza controle de acesso baseado em perfis de usuário.
+**Descrição:** o comportamento em caso de falha de um serviço dependente foi
+implementado conforme o requisito de tolerância a falhas:
 
-Cada papel possui responsabilidades específicas definidas pelo minimundo.
+- **Faturamento indisponível:** o agendamento prossegue; a consulta é criada com
+  `valor_consulta` nulo.
+- **Cadastro indisponível:** o serviço não quebra; retorna `503` de forma
+  controlada na operação que dependia da validação.
+
+**Por que foi utilizado:** garante que a indisponibilidade de um serviço não
+interrompa todo o sistema — exatamente o cenário de tolerância a falhas do projeto.
+
+## 5.3. Circuit Breaker / Retry — Futuro
+
+**Descrição:** mecanismos adicionais de resiliência previstos para evolução; ainda
+não implementados (apenas o Timeout e a degradação graciosa foram aplicados).
+
+---
+
+# 6. Padrões de Segurança
+
+## 6.1. Controle de Acesso por Perfis (RBAC conceitual) — Modelado
+
+**Onde foi aplicado:** regras de negócio e modelagem.
+
+**Descrição:** o sistema define perfis (Paciente, Atendente, Médico, Gerente,
+Diretor), cada um com responsabilidades específicas.
 
 | Perfil    | Responsabilidades                                       |
 | --------- | ------------------------------------------------------- |
-| Paciente  | autocadastro, agendamento, cancelamento                 |
-| Atendente | cadastro de pacientes, pagamentos                       |
-| Médico    | realização de consultas                                 |
-| Gerente   | gerenciamento de médicos, escalas e aprovações          |
-| Diretor   | gerenciamento de especialidades, consultórios e valores |
+| Paciente  | Autocadastro, agendamento, remarcação, cancelamento     |
+| Atendente | Cadastro de pacientes, registro de pagamentos           |
+| Médico    | Realização de consultas, prescrições, solicitação de exames |
+| Gerente   | Gestão de médicos, escalas e aprovação de cancelamentos |
+| Diretor   | Gestão de especialidades, consultórios e valores        |
 
-### Por que foi utilizado
-
-* separação clara de responsabilidades;
-* organização das permissões do sistema;
-* controle de acesso baseado no papel do usuário.
+**Situação:** o modelo de perfis está definido, mas a **camada técnica de
+autenticação/autorização ainda não foi implementada (Planejado)**.
 
 ---
 
-# 5. Padrões de Implantação
+# 7. Padrões de Modelagem
 
-## 5.1. Containerização com Docker
+## 7.1. Enumeração de Estados — Implementado em código
 
-### Onde será aplicada
+**Onde foi aplicado:** Agendamento Service (`estados.py`).
 
-Implantação dos microsserviços.
+**Descrição:** os estados da consulta são representados por uma enumeração
+(`EstadoConsulta`): `AGENDADA`, `EM_ANDAMENTO`, `FINALIZADA`, `CANCELADA`. A
+transição entre estados é validada nas regras de negócio.
 
-### Descrição
+**Por que foi utilizado:** evita valores inválidos e torna as regras de negócio
+mais claras.
 
-O diagrama de implantação modela um ambiente baseado em Docker, no qual os serviços poderão ser executados de forma isolada.
+## 7.2. Classe Associativa — Modelado e refletido em código
 
-### Objetivos previstos
+**Onde foi aplicado:** relacionamento entre Consulta e Exame.
 
-* isolamento entre serviços;
-* padronização do ambiente;
-* facilidade de implantação;
-* suporte à execução independente dos microsserviços.
-
----
-
-# 6. Padrões Planejados para Evolução do Projeto
-
-> Observação: Os itens desta seção ainda não foram implementados e serão definidos durante a evolução do projeto.
+**Descrição:** a classe associativa **ExameSolicitado** (atributos `resultado` e
+`data_realizacao`) representa dados próprios da associação. Reflete-se no código
+na lista `exames_solicitados` de cada consulta.
 
 ---
 
-## 6.1. Repository Pattern (futuro)
+# 8. Padrões de Implantação
 
-### Objetivo
+## 8.1. Containerização com Docker — Planejado
 
-Encapsular a lógica de acesso aos bancos de dados.
+**Descrição:** o diagrama de implantação modela cada serviço em um container
+Docker independente, com seu próprio banco. **Ainda não implementado** — em
+preparação pela equipe.
 
-### Possível aplicação futura
+## 8.2. Orquestração com Docker Compose — Planejado
 
-* PacienteRepository
-* ConsultaRepository
-* PagamentoRepository
-
----
-
-## 6.2. DTO — Data Transfer Object (futuro)
-
-### Objetivo
-
-Separar objetos de API dos objetos internos do domínio.
-
-### Possível aplicação futura
-
-* ConsultaRequestDTO
-* ConsultaResponseDTO
-* PacienteDTO
+**Descrição:** orquestração dos três serviços em rede, prevista para subir o
+ambiente completo com um único comando.
 
 ---
 
-## 6.3. Estratégias de Resiliência (futuro)
+# 9. Padrões Planejados para Evolução
 
-### Possíveis padrões
+> Itens ainda não implementados.
 
-* Circuit Breaker
-* Timeout
-* Retry
-
-### Objetivo
-
-Melhorar tolerância a falhas na comunicação entre microsserviços.
+- **DTO (Data Transfer Object):** separar objetos de API dos objetos internos.
+- **Repository Pattern completo:** abstrair a persistência definitiva.
+- **Circuit Breaker / Retry:** resiliência adicional entre serviços.
 
 ---
 
-## 6.4. Docker Compose (futuro)
+# 10. Resumo dos Padrões
 
-### Objetivo
-
-Orquestração do ambiente de desenvolvimento e testes.
+| Padrão                              | Categoria     | Situação                          |
+| ----------------------------------- | ------------- | --------------------------------- |
+| Arquitetura de Microsserviços       | Arquitetural  | Implementado                      |
+| Database per Service                | Arquitetural  | Isolamento implementado; BD planejado |
+| Modularização por Blueprints        | Organização   | Implementado                      |
+| Separação de Responsabilidades      | Organização   | Implementado                      |
+| Repositório em memória              | Organização   | Estrutura inicial                 |
+| API REST                            | Comunicação   | Implementado                      |
+| Comunicação entre Microsserviços    | Comunicação   | Implementado                      |
+| API Gateway                         | Comunicação   | Modelado (Planejado)              |
+| Timeout                             | Resiliência   | Implementado                      |
+| Degradação Graciosa (Fallback)      | Resiliência   | Implementado                      |
+| Circuit Breaker / Retry             | Resiliência   | Futuro                            |
+| RBAC (conceitual)                   | Segurança     | Modelado                          |
+| Enumeração de Estados               | Modelagem     | Implementado em código            |
+| Classe Associativa                  | Modelagem     | Modelado / refletido em código    |
+| Containerização com Docker          | Implantação   | Planejado                         |
+| Docker Compose                      | Implantação   | Planejado                         |
+| DTO                                 | Dados         | Futuro                            |
 
 ---
 
-# 7. Conclusão
+# 11. Conclusão
 
-Os padrões selecionados refletem a arquitetura e os artefatos atualmente produzidos no projeto APS Health.
+O projeto Areas Health evoluiu da fase de modelagem para uma implementação
+funcional: três microsserviços independentes, comunicando-se via REST/JSON, com
+isolamento de dados por serviço e tolerância a falhas implementada (timeout e
+degradação graciosa).
 
-Até o momento, já foram aplicados:
-
-* arquitetura de microsserviços;
-* comunicação REST utilizando JSON;
-* modularização por rotas com Blueprints;
-* separação de responsabilidades;
-* modelagem de acesso baseada em perfis;
-* isolamento lógico dos domínios de negócio.
-
-As próximas etapas do desenvolvimento permitirão implementar os padrões previstos para persistência definitiva dos dados, implantação em containers Docker e estratégias de resiliência entre microsserviços.
+Os padrões já aplicados favorecem modularidade, separação de responsabilidades,
+baixo acoplamento e organização por domínio de negócio. Os itens ainda planejados
+— persistência definitiva, API Gateway, autenticação/autorização e containerização
+— estão claramente identificados e direcionam a continuidade do desenvolvimento.
