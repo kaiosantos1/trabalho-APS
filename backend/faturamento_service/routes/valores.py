@@ -29,6 +29,14 @@ def criar_valor():
     return jsonify(novo_valor), 201
 
 
+@valores_bp.route("/valores/vigente", methods=["GET"])
+def obter_valor_vigente():
+    if not valores:
+        return jsonify({"erro": "Nenhum valor cadastrado"}), 404
+
+    return jsonify(valores[-1])
+
+
 @valores_bp.route("/valores/<int:id>", methods=["GET"])
 def buscar_valor(id):
     for valor in valores:
