@@ -1,9 +1,9 @@
 # Sistema de Gestão de Clínicas 
-## Areas Health
+## APS Health
 
 Projeto acadêmico desenvolvido para modelagem de um **Sistema de Gestão Clínicas baseado em Arquitetura de Microsserviços**.
 
-O sistema foi projetado para atender às necessidades operacionais da clínica médica **Areas Health**, contemplando cadastro administrativo, agendamento clínico e gestão financeira das consultas.
+O sistema foi projetado para atender às necessidades operacionais da clínica médica **APS Health**, contemplando cadastro administrativo, agendamento clínico e gestão financeira das consultas.
 
 ---
 
