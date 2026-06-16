@@ -35,8 +35,10 @@ async function carregarPacientes() {
     lista.innerHTML = "";
 
     pacientes.forEach(p => {
+        const telefones = (p.telefones || []).join(", ");
+        const emails = (p.emails || []).join(", ");
         const item = document.createElement("li");
-        item.textContent = `${p.id} - ${p.nome} | CPF: ${p.cpf} | Tel: ${p.telefone} | Email: ${p.email}`;
+        item.textContent = `${p.id} - ${p.nome} | CPF: ${p.cpf} | Tel: ${telefones} | Email: ${emails}`;
         lista.appendChild(item);
     });
 }
@@ -50,7 +52,12 @@ async function cadastrarPaciente() {
     await fetch(`${API_URL}/pacientes`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ nome, cpf, telefone, email })
+        body: JSON.stringify({
+            nome,
+            cpf,
+            telefones: telefone ? [telefone] : [],
+            emails: email ? [email] : []
+        })
     });
 
     document.getElementById("pacienteNome").value = "";
@@ -69,8 +76,9 @@ async function carregarMedicos() {
     lista.innerHTML = "";
 
     medicos.forEach(m => {
+        const especialidades = (m.especialidades_ids || []).join(", ");
         const item = document.createElement("li");
-        item.textContent = `${m.id} - ${m.nome} | CRM: ${m.crm} | Especialidade ID: ${m.especialidade_id}`;
+        item.textContent = `${m.id} - ${m.nome} | CRM: ${m.crm} | Especialidades IDs: ${especialidades}`;
         lista.appendChild(item);
     });
 }
@@ -78,12 +86,16 @@ async function carregarMedicos() {
 async function cadastrarMedico() {
     const nome = document.getElementById("medicoNome").value;
     const crm = document.getElementById("medicoCrm").value;
-    const especialidade_id = Number(document.getElementById("medicoEspecialidadeId").value);
+    const especialidadeId = Number(document.getElementById("medicoEspecialidadeId").value);
 
     await fetch(`${API_URL}/medicos`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ nome, crm, especialidade_id })
+        body: JSON.stringify({
+            nome,
+            crm,
+            especialidades_ids: especialidadeId ? [especialidadeId] : []
+        })
     });
 
     document.getElementById("medicoNome").value = "";
