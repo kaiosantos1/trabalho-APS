@@ -1,6 +1,6 @@
 # Documento de Padrões de Software
 
-## Sistema de Gestão Clínica Areas Health
+## Sistema de Gestão Clínica APS Health
 
 **Versão:** 1.0
 **Arquitetura:** Microsserviços
@@ -9,7 +9,7 @@
 
 # 1. Introdução
 
-Este documento descreve os padrões de software adotados no desenvolvimento do sistema **Areas Health**.
+Este documento descreve os padrões de software adotados no desenvolvimento do sistema **APS Health**.
 
 Os padrões apresentados foram selecionados considerando os requisitos do projeto, o minimundo definido, os diagramas UML produzidos e a arquitetura baseada em microsserviços.
 
@@ -76,13 +76,64 @@ Cada microsserviço possui seu próprio banco de dados, evitando compartilhament
 
 ---
 
+## 2.3. Modularização por Rotas (Blueprints)
+
+### Onde foi aplicado
+
+Implementação do Cadastro Service.
+
+### Descrição
+
+O Cadastro Service foi organizado utilizando **Blueprints do Flask**, separando as rotas por entidade de negócio.
+
+Estrutura utilizada:
+
+```plaintext
+routes/
+├── pacientes.py
+├── medicos.py
+├── especialidades.py
+├── consultorios.py
+├── medicamentos.py
+└── exames.py
+```
+
+### Por que foi utilizado
+
+* melhor organização do código;
+* redução da complexidade do arquivo principal;
+* facilidade de manutenção;
+* separação clara das responsabilidades.
+
+---
+
+## 2.4. Separação de Responsabilidades
+
+### Onde foi aplicado
+
+Implementação do Cadastro Service.
+
+### Descrição
+
+O arquivo principal da aplicação (`app.py`) ficou responsável apenas pela inicialização do serviço, configuração do Flask e registro das rotas.
+
+A lógica dos endpoints foi distribuída nos módulos específicos de cada entidade.
+
+### Por que foi utilizado
+
+* reduz acoplamento;
+* melhora legibilidade;
+* facilita futuras evoluções do sistema.
+
+---
+
 # 3. Padrões de Comunicação
 
 ## 3.1. API Gateway
 
 ### Onde foi aplicado
 
-Entrada do sistema e comunicação com os microsserviços.
+Modelagem arquitetural do sistema.
 
 ### Descrição
 
@@ -105,19 +156,33 @@ Todas as requisições do cliente passam inicialmente pelo gateway, que direcion
 
 ---
 
-## 3.2. Comunicação REST *(planejada)*
+## 3.2. Comunicação REST
 
-### Onde será aplicada
+### Onde foi aplicada
 
-Comunicação entre gateway e microsserviços.
+Comunicação entre frontend e microsserviços e entre microsserviços.
 
 ### Descrição
 
-A arquitetura foi modelada considerando comunicação baseada em APIs REST utilizando troca de dados estruturados.
+A arquitetura utiliza APIs REST com troca de mensagens em formato JSON.
 
-### Observação
+O Cadastro Service já disponibiliza endpoints REST para:
 
-A implementação detalhada desta comunicação será definida nas etapas de desenvolvimento do código.
+* pacientes;
+* médicos;
+* especialidades;
+* consultórios;
+* medicamentos;
+* exames.
+
+Outros serviços, como Agendamento e Faturamento, poderão consumir esses endpoints durante a integração.
+
+### Por que foi utilizado
+
+* simplicidade de implementação;
+* ampla compatibilidade entre tecnologias;
+* desacoplamento entre serviços;
+* facilidade de integração.
 
 ---
 
@@ -153,7 +218,7 @@ Cada papel possui responsabilidades específicas definidas pelo minimundo.
 
 # 5. Padrões de Implantação
 
-## 5.1. Containerização com Docker *(arquitetura prevista)*
+## 5.1. Containerização com Docker
 
 ### Onde será aplicada
 
@@ -161,27 +226,28 @@ Implantação dos microsserviços.
 
 ### Descrição
 
-O diagrama de implantação modela um ambiente baseado em **Docker / Cloud VM**, no qual os serviços poderão ser executados de forma isolada.
+O diagrama de implantação modela um ambiente baseado em Docker, no qual os serviços poderão ser executados de forma isolada.
 
 ### Objetivos previstos
 
 * isolamento entre serviços;
 * padronização do ambiente;
-* facilidade futura de implantação.
+* facilidade de implantação;
+* suporte à execução independente dos microsserviços.
 
 ---
 
 # 6. Padrões Planejados para Evolução do Projeto
 
-> **Observação:** Os itens desta seção ainda não foram implementados e serão definidos durante a fase de desenvolvimento.
+> Observação: Os itens desta seção ainda não foram implementados e serão definidos durante a evolução do projeto.
 
 ---
 
-## 6.1. Repository Pattern *(futuro)*
+## 6.1. Repository Pattern (futuro)
 
 ### Objetivo
 
-Encapsular a lógica de acesso aos bancos MongoDB.
+Encapsular a lógica de acesso aos bancos de dados.
 
 ### Possível aplicação futura
 
@@ -191,7 +257,7 @@ Encapsular a lógica de acesso aos bancos MongoDB.
 
 ---
 
-## 6.2. DTO — Data Transfer Object *(futuro)*
+## 6.2. DTO — Data Transfer Object (futuro)
 
 ### Objetivo
 
@@ -205,7 +271,7 @@ Separar objetos de API dos objetos internos do domínio.
 
 ---
 
-## 6.3. Estratégias de Resiliência *(futuro)*
+## 6.3. Estratégias de Resiliência (futuro)
 
 ### Possíveis padrões
 
@@ -219,7 +285,7 @@ Melhorar tolerância a falhas na comunicação entre microsserviços.
 
 ---
 
-## 6.4. Docker Compose *(futuro)*
+## 6.4. Docker Compose (futuro)
 
 ### Objetivo
 
@@ -229,14 +295,15 @@ Orquestração do ambiente de desenvolvimento e testes.
 
 # 7. Conclusão
 
-Os padrões selecionados refletem a arquitetura e os artefatos atualmente produzidos no projeto Areas Health.
+Os padrões selecionados refletem a arquitetura e os artefatos atualmente produzidos no projeto APS Health.
 
-O sistema foi modelado utilizando princípios de:
+Até o momento, já foram aplicados:
 
-* microsserviços;
+* arquitetura de microsserviços;
+* comunicação REST utilizando JSON;
+* modularização por rotas com Blueprints;
 * separação de responsabilidades;
-* isolamento de dados;
-* segurança baseada em perfis;
-* arquitetura preparada para evolução futura.
+* modelagem de acesso baseada em perfis;
+* isolamento lógico dos domínios de negócio.
 
-As próximas etapas do desenvolvimento permitirão detalhar e implementar os padrões previstos para persistência, comunicação e resiliência.
+As próximas etapas do desenvolvimento permitirão implementar os padrões previstos para persistência definitiva dos dados, implantação em containers Docker e estratégias de resiliência entre microsserviços.

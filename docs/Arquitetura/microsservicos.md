@@ -16,14 +16,91 @@ A comunicação entre os microsserviços ocorrerá por meio de **APIs REST**, ut
 
 Responsável pelo gerenciamento dos cadastros centrais da clínica.
 
+## Implementação Atual
+
+O Cadastro Service foi implementado utilizando Flask e APIs REST.
+
+A organização do código foi realizada por meio de Blueprints, separando as rotas por entidade de negócio.
+
+Estrutura atual:
+
+```plaintext
+backend/cadastro-service
+│
+├── app.py
+├── requirements.txt
+└── routes
+    ├── pacientes.py
+    ├── medicos.py
+    ├── especialidades.py
+    ├── consultorios.py
+    ├── medicamentos.py
+    └── exames.py
+```
+
+Os dados encontram-se temporariamente armazenados em memória para permitir validação dos contratos REST e integração inicial entre os serviços.
+
+---
+
 ## Entidades Gerenciadas
 
-- Pacientes
-- Médicos
-- Especialidades
-- Consultórios
-- Medicamentos
-- Exames
+### Pacientes
+
+Atributos principais:
+
+* nome
+* CPF
+* data de nascimento
+* endereço
+* telefones
+* e-mails
+* ativo
+
+### Médicos
+
+Atributos principais:
+
+* nome
+* CPF
+* CRM
+* data de nascimento
+* endereço
+* telefones
+* e-mails
+* especialidades
+
+Observação:
+
+Um médico deve possuir pelo menos uma especialidade e pode atuar em múltiplas especialidades.
+
+### Especialidades
+
+Atributos principais:
+
+* nome
+* descrição
+
+### Consultórios
+
+Atributos principais:
+
+* número
+* bloco
+* tamanho
+
+### Medicamentos
+
+Atributos principais:
+
+* nome
+* indicação
+
+### Exames
+
+Atributos principais:
+
+* nome
+* indicação
 
 ---
 
@@ -31,53 +108,53 @@ Responsável pelo gerenciamento dos cadastros centrais da clínica.
 
 ### Pacientes
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
+| Funcionalidade     | Perfis Autorizados  |
+| ------------------ | ------------------- |
 | Cadastrar paciente | Paciente, Atendente |
 | Consultar paciente | Paciente, Atendente |
 | Atualizar paciente | Paciente, Atendente |
-| Listar pacientes | Atendente, Gerente |
+| Listar pacientes   | Atendente, Gerente  |
 
 ### Médicos
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Cadastrar médico | Gerente |
-| Atualizar médico | Gerente |
-| Consultar médico | Gerente, Atendente, Paciente |
-| Associar especialidades | Gerente |
+| Funcionalidade          | Perfis Autorizados           |
+| ----------------------- | ---------------------------- |
+| Cadastrar médico        | Gerente                      |
+| Atualizar médico        | Gerente                      |
+| Consultar médico        | Gerente, Atendente, Paciente |
+| Associar especialidades | Gerente                      |
 
 ### Especialidades
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Cadastrar especialidade | Diretor |
-| Atualizar especialidade | Diretor |
+| Funcionalidade           | Perfis Autorizados                            |
+| ------------------------ | --------------------------------------------- |
+| Cadastrar especialidade  | Diretor                                       |
+| Atualizar especialidade  | Diretor                                       |
 | Consultar especialidades | Diretor, Gerente, Médico, Atendente, Paciente |
 
 ### Consultórios
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Cadastrar consultório | Diretor |
-| Atualizar consultório | Diretor |
-| Consultar consultório | Diretor, Gerente |
+| Funcionalidade        | Perfis Autorizados |
+| --------------------- | ------------------ |
+| Cadastrar consultório | Diretor            |
+| Atualizar consultório | Diretor            |
+| Consultar consultório | Diretor, Gerente   |
 
 ### Medicamentos
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Cadastrar medicamento | Médico |
-| Atualizar medicamento | Médico |
-| Consultar medicamento | Médico |
+| Funcionalidade        | Perfis Autorizados |
+| --------------------- | ------------------ |
+| Cadastrar medicamento | Médico             |
+| Atualizar medicamento | Médico             |
+| Consultar medicamento | Médico             |
 
 ### Exames
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Cadastrar exame | Médico |
-| Atualizar exame | Médico |
-| Consultar exame | Médico |
+| Funcionalidade  | Perfis Autorizados |
+| --------------- | ------------------ |
+| Cadastrar exame | Médico             |
+| Atualizar exame | Médico             |
+| Consultar exame | Médico             |
 
 ---
 
@@ -93,6 +170,15 @@ POST /medicos
 
 GET /especialidades
 POST /especialidades
+
+GET /consultorios
+POST /consultorios
+
+GET /medicamentos
+POST /medicamentos
+
+GET /exames
+POST /exames
 ```
 
 ---
@@ -105,10 +191,10 @@ Responsável pela gestão operacional das consultas e disponibilidade médica.
 
 ## Entidades Gerenciadas
 
-- Consultas
-- Escalas Médicas
-- Disponibilidades
-- Solicitações de Cancelamento
+* Consultas
+* Escalas Médicas
+* Disponibilidades
+* Solicitações de Cancelamento
 
 ---
 
@@ -120,11 +206,11 @@ Responsável pela gestão operacional das consultas e disponibilidade médica.
 
 Funções:
 
-- Criar escala médica
-- Atualizar escala
-- Consultar escalas
-- Validar conflitos de horários
-- Validar ocupação de consultórios
+* Criar escala médica
+* Atualizar escala
+* Consultar escalas
+* Validar conflitos de horários
+* Validar ocupação de consultórios
 
 O gerente realiza o gerenciamento das escalas.
 
@@ -134,13 +220,13 @@ O médico poderá consultar suas próprias escalas de trabalho.
 
 ### Consultas
 
-| Funcionalidade | Perfis Autorizados |
-|----------------|-------------------|
-| Agendar consulta | Paciente, Atendente |
+| Funcionalidade            | Perfis Autorizados  |
+| ------------------------- | ------------------- |
+| Agendar consulta          | Paciente, Atendente |
 | Consultar disponibilidade | Paciente, Atendente |
-| Reagendar consulta | Paciente, Atendente |
-| Solicitar cancelamento | Paciente, Atendente |
-| Consultar consultas | Paciente, Atendente |
+| Reagendar consulta        | Paciente, Atendente |
+| Solicitar cancelamento    | Paciente, Atendente |
+| Consultar consultas       | Paciente, Atendente |
 
 ---
 
@@ -148,11 +234,11 @@ O médico poderá consultar suas próprias escalas de trabalho.
 
 O paciente poderá utilizar diretamente o sistema para:
 
-- realizar cadastro;
-- consultar suas consultas;
-- agendar consultas;
-- reagendar consultas;
-- solicitar cancelamento.
+* realizar cadastro;
+* consultar suas consultas;
+* agendar consultas;
+* reagendar consultas;
+* solicitar cancelamento.
 
 O atendente também poderá executar essas operações em nome do paciente durante atendimento presencial.
 
@@ -182,12 +268,12 @@ GET /consultas/disponibilidade?especialidadeId={id}&data={data}
 
 Funções:
 
-- registrar início da consulta;
-- registrar encerramento;
-- registrar estado clínico do paciente;
-- prescrever medicamentos;
-- solicitar exames;
-- registrar resultados de exames.
+* registrar início da consulta;
+* registrar encerramento;
+* registrar estado clínico do paciente;
+* prescrever medicamentos;
+* solicitar exames;
+* registrar resultados de exames.
 
 ---
 
@@ -207,21 +293,9 @@ Aprova       Rejeita
 
 Regras de negócio:
 
-- apenas consultas no estado **Agendada** podem ser canceladas;
-- solicitação permitida somente antes do horário previsto;
-- gerente aprova ou rejeita solicitações.
-
-Endpoints:
-
-```plaintext
-POST /consultas/{id}/solicitar-cancelamento
-
-GET /cancelamentos/pendentes
-
-PUT /cancelamentos/{id}/aprovar
-
-PUT /cancelamentos/{id}/rejeitar
-```
+* apenas consultas no estado **Agendada** podem ser canceladas;
+* solicitação permitida somente antes do horário previsto;
+* gerente aprova ou rejeita solicitações.
 
 ---
 
@@ -229,26 +303,10 @@ PUT /cancelamentos/{id}/rejeitar
 
 Uma consulta poderá assumir os seguintes estados:
 
-- Agendada
-- Em Andamento
-- Finalizada
-- Cancelada
-
-### Transições de Estado
-
-```plaintext
-POST /consultas
-→ AGENDADA
-
-PUT /consultas/{id}/iniciar
-AGENDADA → EM_ANDAMENTO
-
-PUT /consultas/{id}/finalizar
-EM_ANDAMENTO → FINALIZADA
-
-PUT /cancelamentos/{id}/aprovar
-AGENDADA → CANCELADA
-```
+* Agendada
+* Em Andamento
+* Finalizada
+* Cancelada
 
 ---
 
@@ -260,9 +318,9 @@ Responsável pela gestão financeira das consultas.
 
 ## Entidades Gerenciadas
 
-- Valores de Consulta
-- Pagamentos
-- Cobranças
+* Valores de Consulta
+* Pagamentos
+* Cobranças
 
 ---
 
@@ -274,9 +332,9 @@ Responsável pela gestão financeira das consultas.
 
 Funções:
 
-- definir valor vigente;
-- atualizar valor vigente;
-- consultar valor vigente.
+* definir valor vigente;
+* atualizar valor vigente;
+* consultar valor vigente.
 
 ### Pagamentos
 
@@ -284,9 +342,9 @@ Funções:
 
 Funções:
 
-- registrar pagamento;
-- consultar pagamento;
-- listar pagamentos.
+* registrar pagamento;
+* consultar pagamento;
+* listar pagamentos.
 
 ### Cobranças
 
@@ -294,54 +352,34 @@ Funções:
 
 Funções:
 
-- emitir cobrança;
-- consultar cobranças;
-- acompanhar cobranças.
+* emitir cobrança;
+* consultar cobranças;
+* acompanhar cobranças.
 
 #### Gerente
 
 Funções:
 
-- consultar cobranças;
-- acompanhar cobranças.
+* consultar cobranças;
+* acompanhar cobranças.
 
 #### Paciente
 
 Funções:
 
-- consultar suas cobranças;
-- consultar seu histórico financeiro;
-- consultar seus pagamentos.
+* consultar suas cobranças;
+* consultar seu histórico financeiro;
+* consultar seus pagamentos.
+
 ---
 
 ## Regras de Negócio
 
-- o valor da consulta não depende da especialidade;
-- o valor deverá possuir data de vigência;
-- o pagamento utilizará o valor vigente correspondente à data do agendamento.
+* o valor da consulta não depende da especialidade;
+* o valor deverá possuir data de vigência;
+* o pagamento utilizará o valor vigente correspondente à data do agendamento.
 
 ---
-
-## Exemplos de Endpoints REST
-
-```plaintext
-GET /valores
-
-POST /valores
-
-GET /pagamentos
-
-POST /pagamentos
-
-GET /pagamentos/meus
-
-GET /cobrancas
-
-GET /cobrancas/minhas
-```
-
----
-
 
 # Comunicação entre Microsserviços
 
@@ -349,25 +387,27 @@ GET /cobrancas/minhas
 
 O serviço de Agendamento poderá consultar o serviço de Cadastro para:
 
-- validar pacientes;
-- validar médicos;
-- validar especialidades;
-- consultar informações cadastrais.
+* validar pacientes;
+* validar médicos;
+* validar especialidades;
+* consultar informações cadastrais.
 
 ## Agendamento → Faturamento
 
 O serviço de Agendamento poderá consultar o serviço de Faturamento para:
 
-- obter valor vigente da consulta;
-- registrar informações financeiras associadas.
+* obter valor vigente da consulta;
+* registrar informações financeiras associadas.
 
 ---
 
 ## Tecnologias de Comunicação
 
-- REST
-- JSON
-- HTTP
+* REST
+* JSON
+* HTTP
+
+Nesta primeira versão a comunicação foi definida por APIs REST retornando JSON. O Cadastro Service expõe endpoints para pacientes, médicos, especialidades, consultórios, medicamentos e exames. Outros serviços, como Agendamento e Faturamento, podem consumir esses endpoints.
 
 ---
 
@@ -377,17 +417,17 @@ A arquitetura deverá garantir tolerância a falhas entre os microsserviços.
 
 Estratégias adotadas:
 
-- microsserviços independentes;
-- comunicação desacoplada via REST;
-- timeout nas chamadas entre serviços;
-- falha em um serviço não interrompe completamente os demais.
+* microsserviços independentes;
+* comunicação desacoplada via REST;
+* timeout nas chamadas entre serviços;
+* falha em um serviço não interrompe completamente os demais.
 
 ## Cenários de Tolerância
 
-| Cenário | Comportamento |
-|----------|---------------|
-| Faturamento indisponível | Agendamento continua funcionando |
-| Cadastro indisponível | Serviços restantes continuam operando |
+| Cenário                  | Comportamento                                 |
+| ------------------------ | --------------------------------------------- |
+| Faturamento indisponível | Agendamento continua funcionando              |
+| Cadastro indisponível    | Serviços restantes continuam operando         |
 | Agendamento indisponível | Cadastro e faturamento permanecem disponíveis |
 
 ---
@@ -398,6 +438,6 @@ Cada microsserviço será executado em um **container Docker independente**.
 
 Exemplo:
 
-- cadastro-service
-- agendamento-service
-- faturamento-service
+* cadastro-service
+* agendamento-service
+* faturamento-service
