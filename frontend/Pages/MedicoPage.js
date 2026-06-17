@@ -32,25 +32,33 @@ function renderConsultas(listaElement, consultas) {
     }
 
     listaElement.innerHTML = consultas.map(consulta => {
-        const exames = (consulta.exames_solicitados || [])
-            .map(ex => `#${ex.id} exame ${ex.exame_id}${ex.resultado ? " (resultado registrado)" : " (aguardando)"}`)
-            .join(", ") || "nenhum";
+        const exames = consulta.exames_solicitados || [];
+        const examesHtml = exames.length
+            ? `<ul class="list sub-list">` + exames.map(ex => `
+                <li class="list-item">
+                    <div class="muted"><strong>Exame solicitado #${ex.id}</strong> — exame ${ex.exame_id} — ${ex.resultado ? "resultado registrado" : "aguardando resultado"}</div>
+                    ${ex.resultado ? "" : `<div class="card-actions inline-actions"><button class="button ghost" data-exame-consulta="${consulta.id}" data-exame-id="${ex.id}">Registrar resultado deste exame</button></div>`}
+                </li>`).join("") + `</ul>`
+            : '<div class="muted">Nenhum exame solicitado.</div>';
 
-        const acaoIniciar = consulta.estado === "AGENDADA"
-            ? `<button class="button success" data-iniciar="${consulta.id}">Iniciar consulta</button>`
-            : "";
+        const acoes = [];
+        if (consulta.estado === "AGENDADA") {
+            acoes.push(`<button class="button success" data-iniciar="${consulta.id}">Iniciar consulta</button>`);
+        }
+        acoes.push(`<button class="button ghost" data-selecionar="${consulta.id}">Usar nos formulários</button>`);
 
         return `
             <li class="list-item consultation-item">
                 <div>
-                    <strong>Consulta ${consulta.id}</strong>
+                    <strong>Consulta #${consulta.id}</strong>
                     <span>${formatDateTime(consulta.data_hora)}</span>
                 </div>
                 <div class="muted">
                     Paciente ${consulta.paciente_id} • Estado: <strong>${consulta.estado}</strong> •
-                    Prescrições: ${(consulta.prescricoes || []).length} • Exames: ${exames}
+                    Prescrições: ${(consulta.prescricoes || []).length}
                 </div>
-                ${acaoIniciar ? `<div class="card-actions inline-actions">${acaoIniciar}</div>` : ""}
+                ${examesHtml}
+                <div class="card-actions inline-actions">${acoes.join("")}</div>
             </li>
         `;
     }).join("");
@@ -117,17 +125,36 @@ export async function renderMedicoPage(container, context) {
     medicoSelect.addEventListener("change", carregarDadosMedico);
 
     consultasLista.addEventListener("click", async event => {
-        const botao = event.target.closest("[data-iniciar]");
-        if (!botao) {
+        const iniciarBtn = event.target.closest("[data-iniciar]");
+        const selecionarBtn = event.target.closest("[data-selecionar]");
+        const exameBtn = event.target.closest("[data-exame-id]");
+
+        // Preenche os 4 formulários com o ID da consulta escolhida.
+        if (selecionarBtn) {
+            const id = selecionarBtn.dataset.selecionar;
+            ["#finalizarConsultaId", "#prescricaoConsultaId", "#exameConsultaId", "#resultadoConsultaId"]
+                .forEach(sel => { const campo = container.querySelector(sel); if (campo) campo.value = id; });
+            context.notify("info", `Consulta #${id} selecionada nos formulários.`);
             return;
         }
 
-        try {
-            await requestJson("agendamento", `/consultas/${botao.dataset.iniciar}/iniciar`, { method: "PUT" });
-            context.notify("success", "Consulta iniciada (EM_ANDAMENTO).");
-            await carregarDadosMedico();
-        } catch (error) {
-            context.notify("error", error.message);
+        // Preenche o formulário de resultado com a consulta + exame escolhidos.
+        if (exameBtn) {
+            container.querySelector("#resultadoConsultaId").value = exameBtn.dataset.exameConsulta;
+            container.querySelector("#resultadoExameId").value = exameBtn.dataset.exameId;
+            container.querySelector("#resultadoTexto").focus();
+            context.notify("info", "Campos do resultado preenchidos. Informe o resultado.");
+            return;
+        }
+
+        if (iniciarBtn) {
+            try {
+                await requestJson("agendamento", `/consultas/${iniciarBtn.dataset.iniciar}/iniciar`, { method: "PUT" });
+                context.notify("success", "Consulta iniciada (EM_ANDAMENTO).");
+                await carregarDadosMedico();
+            } catch (error) {
+                context.notify("error", error.message);
+            }
         }
     });
 

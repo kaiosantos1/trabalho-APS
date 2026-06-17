@@ -13,19 +13,29 @@ function renderConsultas(listaElement, consultas, medicoMap, especialidadeMap) {
         return;
     }
 
-    listaElement.innerHTML = consultas.map(consulta => `
-        <li class="list-item consultation-item">
-            <div>
-                <strong>Consulta ${consulta.id}</strong>
-                <span>${formatDateTime(consulta.data_hora)}</span>
-            </div>
-            <div class="muted">
-                Médico: ${medicoMap.get(consulta.medico_id)?.nome || `ID ${consulta.medico_id}`} •
-                Especialidade: ${especialidadeMap.get(consulta.especialidade_id)?.nome || `ID ${consulta.especialidade_id}`} •
-                Estado: ${consulta.estado}
-            </div>
-        </li>
-    `).join("");
+    listaElement.innerHTML = consultas.map(consulta => {
+        const acoes = consulta.estado === "AGENDADA"
+            ? `<div class="card-actions inline-actions">
+                   <button class="button ghost" data-reagendar="${consulta.id}">Reagendar esta</button>
+                   <button class="button danger" data-cancelar="${consulta.id}">Cancelar esta</button>
+               </div>`
+            : "";
+
+        return `
+            <li class="list-item consultation-item">
+                <div>
+                    <strong>Consulta #${consulta.id}</strong>
+                    <span>${formatDateTime(consulta.data_hora)}</span>
+                </div>
+                <div class="muted">
+                    Médico: ${medicoMap.get(consulta.medico_id)?.nome || `ID ${consulta.medico_id}`} •
+                    Especialidade: ${especialidadeMap.get(consulta.especialidade_id)?.nome || `ID ${consulta.especialidade_id}`} •
+                    Estado: ${consulta.estado}
+                </div>
+                ${acoes}
+            </li>
+        `;
+    }).join("");
 }
 
 async function carregarCatalogos(container) {
@@ -214,6 +224,21 @@ export async function renderUsuarioPage(container, context) {
     } catch (error) {
         context.notify("error", error.message);
     }
+
+    // Botões nas consultas preenchem o ID nos formulários (sem precisar decorar).
+    container.querySelector("#listaConsultas").addEventListener("click", event => {
+        const reagendarBtn = event.target.closest("[data-reagendar]");
+        const cancelarBtn = event.target.closest("[data-cancelar]");
+
+        if (reagendarBtn) {
+            container.querySelector("#reagendarConsultaId").value = reagendarBtn.dataset.reagendar;
+            container.querySelector("#reagendarData").focus();
+            context.notify("info", `Consulta #${reagendarBtn.dataset.reagendar} selecionada para reagendar.`);
+        } else if (cancelarBtn) {
+            container.querySelector("#cancelamentoConsultaId").value = cancelarBtn.dataset.cancelar;
+            context.notify("info", `Consulta #${cancelarBtn.dataset.cancelar} selecionada para cancelamento.`);
+        }
+    });
 
     container.querySelector("#disponibilidade-form").addEventListener("submit", async event => {
         event.preventDefault();
