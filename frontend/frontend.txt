@@ -1,4 +1,4 @@
-# Frontend Areas Health
+# Frontend APS Health
 
 Frontend inicial em HTML, CSS e JavaScript puro.
 
@@ -13,3 +13,36 @@ Funcionalidades atuais:
 - Cadastrar e listar especialidades
 - Cadastrar e listar pacientes
 - Cadastrar e listar médicos
+
+Plano para o front end integrado:
+
+
+----AdministradorPage: ----
+--Cadastro Service--
+-Cadastro de médicos 
+-cadastro de especialidades
+--agendamento service--
+-Aprovar ou reprovar solicitações de cancelamento de agendamento
+--faturamento service--
+-emitir fatura
+-cobrar consulta
+
+---- UsuarioPage: ----
+--Cadastro service--
+-Se Cadastrar
+--Agendamento service--
+-marcar consulta
+-editar consulta
+-remarcar consulta
+-Solicitar cancelamento de consulta
+
+---- Login page ----
+- Selecionar opção administrador - Já possui cadastro pré definido
+- Selecionar opção de Usuario 
+    - Caso ja tenha cadastro -> UsuarioPage
+    - Caso contrário -> CadastroPage -> paginaUsuario
+
+---- Integração ----
+- Aplicar os scripts do Back end já criados
+- Preparar para integração com MongoDB
+

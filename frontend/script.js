@@ -1,110 +1,115 @@
-const API_URL = "http://localhost:5001";
+import { renderHomePage } from "./Pages/HomePage.js";
+import { renderAdministradorPage } from "./Pages/AdministradorPage.js";
+import { renderCadastroPage } from "./Pages/CadastroPage.js";
+import { renderLoginPage } from "./Pages/LoginPage.js";
+import { renderUsuarioPage } from "./Pages/UsuarioPage.js";
+import { getStoredPatient, getStoredRole } from "./Pages/shared.js";
 
-async function carregarEspecialidades() {
-    const resposta = await fetch(`${API_URL}/especialidades`);
-    const especialidades = await resposta.json();
+const app = document.getElementById("app");
+const flash = document.getElementById("global-message");
+const topbarNav = document.getElementById("main-nav");
 
-    const lista = document.getElementById("listaEspecialidades");
-    lista.innerHTML = "";
+const renderers = {
+    home: renderHomePage,
+    login: renderLoginPage,
+    cadastro: renderCadastroPage,
+    usuario: renderUsuarioPage,
+    administrador: renderAdministradorPage
+};
 
-    especialidades.forEach(e => {
-        const item = document.createElement("li");
-        item.textContent = `${e.id} - ${e.nome}`;
-        lista.appendChild(item);
-    });
+function normalizeRoute(route) {
+    return Object.prototype.hasOwnProperty.call(renderers, route) ? route : "home";
 }
 
-async function cadastrarEspecialidade() {
-    const nome = document.getElementById("especialidadeNome").value;
+function resolveRoute() {
+    const hash = window.location.hash.replace("#", "").trim();
 
-    await fetch(`${API_URL}/especialidades`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ nome })
-    });
+    if (hash) {
+        return normalizeRoute(hash);
+    }
 
-    document.getElementById("especialidadeNome").value = "";
-    carregarEspecialidades();
+    return "home";
 }
 
-async function carregarPacientes() {
-    const resposta = await fetch(`${API_URL}/pacientes`);
-    const pacientes = await resposta.json();
-
-    const lista = document.getElementById("listaPacientes");
-    lista.innerHTML = "";
-
-    pacientes.forEach(p => {
-        const telefones = (p.telefones || []).join(", ");
-        const emails = (p.emails || []).join(", ");
-        const item = document.createElement("li");
-        item.textContent = `${p.id} - ${p.nome} | CPF: ${p.cpf} | Tel: ${telefones} | Email: ${emails}`;
-        lista.appendChild(item);
-    });
+function navigateTo(route) {
+    window.location.hash = `#${normalizeRoute(route)}`;
 }
 
-async function cadastrarPaciente() {
-    const nome = document.getElementById("pacienteNome").value;
-    const cpf = document.getElementById("pacienteCpf").value;
-    const telefone = document.getElementById("pacienteTelefone").value;
-    const email = document.getElementById("pacienteEmail").value;
+function resolveUserLabel() {
+    const role = getStoredRole();
+    const patient = getStoredPatient();
 
-    await fetch(`${API_URL}/pacientes`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            nome,
-            cpf,
-            telefones: telefone ? [telefone] : [],
-            emails: email ? [email] : []
-        })
-    });
+    if (role === "administrador") {
+        return "Administrador";
+    }
 
-    document.getElementById("pacienteNome").value = "";
-    document.getElementById("pacienteCpf").value = "";
-    document.getElementById("pacienteTelefone").value = "";
-    document.getElementById("pacienteEmail").value = "";
+    if (patient?.nome) {
+        return patient.nome;
+    }
 
-    carregarPacientes();
+    return "Visitante";
 }
 
-async function carregarMedicos() {
-    const resposta = await fetch(`${API_URL}/medicos`);
-    const medicos = await resposta.json();
+function renderTopbarNav(route) {
+    if (!topbarNav) {
+        return;
+    }
 
-    const lista = document.getElementById("listaMedicos");
-    lista.innerHTML = "";
+    const userLabel = resolveUserLabel();
 
-    medicos.forEach(m => {
-        const especialidades = (m.especialidades_ids || []).join(", ");
-        const item = document.createElement("li");
-        item.textContent = `${m.id} - ${m.nome} | CRM: ${m.crm} | Especialidades IDs: ${especialidades}`;
-        lista.appendChild(item);
-    });
+    topbarNav.innerHTML = route === "home"
+        ? '<a href="#login">Login</a><a href="#cadastro">Cadastro</a>'
+        : `<span class="topbar-status">Logado: ${userLabel}</span>`;
 }
 
-async function cadastrarMedico() {
-    const nome = document.getElementById("medicoNome").value;
-    const crm = document.getElementById("medicoCrm").value;
-    const especialidadeId = Number(document.getElementById("medicoEspecialidadeId").value);
+function notify(type, message) {
+    if (!flash) {
+        return;
+    }
 
-    await fetch(`${API_URL}/medicos`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            nome,
-            crm,
-            especialidades_ids: especialidadeId ? [especialidadeId] : []
-        })
-    });
+    flash.innerHTML = `
+        <div class="flash flash-${type}">
+            <strong>${type === "error" ? "Atenção" : type === "success" ? "Tudo certo" : "Informação"}</strong>
+            <span>${message}</span>
+        </div>
+    `;
 
-    document.getElementById("medicoNome").value = "";
-    document.getElementById("medicoCrm").value = "";
-    document.getElementById("medicoEspecialidadeId").value = "";
-
-    carregarMedicos();
+    window.clearTimeout(notify.timerId);
+    notify.timerId = window.setTimeout(() => {
+        flash.innerHTML = "";
+    }, 3500);
 }
 
-carregarEspecialidades();
-carregarPacientes();
-carregarMedicos();
+async function render() {
+    const route = resolveRoute();
+
+    if (window.location.hash.replace("#", "") !== route) {
+        window.location.hash = `#${route}`;
+    }
+
+    renderTopbarNav(route);
+
+    app.innerHTML = '<section class="card loading-card">Carregando tela...</section>';
+
+    const renderer = renderers[route] || renderers.login;
+
+    try {
+        await renderer(app, {
+            navigateTo,
+            notify
+        });
+    } catch (error) {
+        app.innerHTML = `
+            <section class="card loading-card error-card">
+                <h2>Não foi possível carregar a tela</h2>
+                <p>${error.message}</p>
+                <button class="button primary" id="retry-render">Tentar novamente</button>
+            </section>
+        `;
+
+        app.querySelector("#retry-render").addEventListener("click", render);
+    }
+}
+
+window.addEventListener("hashchange", render);
+window.addEventListener("DOMContentLoaded", render);

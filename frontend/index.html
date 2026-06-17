@@ -2,42 +2,27 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Areas Health</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APS Health</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app-frame">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">APS Health</p>
+                <h1>Sistema de Gestão Clínica</h1>
+                <p class="topbar-subtitle">A página inicial apresenta os atalhos; o login e a área do paciente ficam em telas separadas.</p>
+            </div>
+            <nav id="main-nav" class="topbar-nav" aria-label="Navegação principal">
+            </nav>
+        </header>
 
-    <h1><p>
-    Cadastro de Especialidades, Pacientes e Médicos 
-</p> </h1>
-    <p>Frontend integrado ao Cadastro Service</p>
+        <div id="global-message" class="global-message" aria-live="polite"></div>
 
-    <section>
-        <h2>Especialidades</h2>
-        <input id="especialidadeNome" placeholder="Nome da especialidade">
-        <button onclick="cadastrarEspecialidade()">Cadastrar</button>
-        <ul id="listaEspecialidades"></ul>
-    </section>
+        <main id="app" class="app-content" aria-live="polite"></main>
+    </div>
 
-    <section>
-        <h2>Pacientes</h2>
-        <input id="pacienteNome" placeholder="Nome do paciente">
-        <input id="pacienteCpf" placeholder="CPF">
-        <input id="pacienteTelefone" placeholder="Telefone">
-        <input id="pacienteEmail" placeholder="E-mail">
-        <button onclick="cadastrarPaciente()">Cadastrar</button>
-        <ul id="listaPacientes"></ul>
-    </section>
-
-    <section>
-        <h2>Médicos</h2>
-        <input id="medicoNome" placeholder="Nome do médico">
-        <input id="medicoCrm" placeholder="CRM">
-        <input id="medicoEspecialidadeId" placeholder="ID da especialidade">
-        <button onclick="cadastrarMedico()">Cadastrar</button>
-        <ul id="listaMedicos"></ul>
-    </section>
-
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
