@@ -50,6 +50,9 @@ async function carregarDados(container) {
         </li>
     `);
 
+    container.querySelector("#gerenteMedicoEspecialidades").innerHTML = especialidades.length
+        ? especialidades.map(e => `<option value="${e.id}">${e.nome} (ID ${e.id})</option>`).join("")
+        : "";
     container.querySelector("#gerenteMedicoSelect").innerHTML = medicos.map(m => `<option value="${m.id}">${m.nome} (ID ${m.id})</option>`).join("");
     container.querySelector("#gerenteConsultorioSelect").innerHTML = consultorio.map(c => `<option value="${c.id}">Sala ${c.numero} / Bloco ${c.bloco} (ID ${c.id})</option>`).join("");
 
