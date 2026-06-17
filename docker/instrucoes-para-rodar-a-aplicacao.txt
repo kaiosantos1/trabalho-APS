@@ -1,25 +1,28 @@
 ====================================================================
  APS HEALTH - SISTEMA DE GESTAO CLINICA
- PASSO A PASSO COMPLETO PARA EXECUTAR A APLICACAO
+ PASSO A PASSO COMPLETO PARA EXECUTAR, USAR E APRESENTAR
 ====================================================================
 
 Este documento explica TUDO o que precisa ser feito para subir e usar
-a aplicacao: backend (3 microsservicos + 3 bancos MongoDB), frontend
-e o fluxo de uso por perfil de usuario.
+a aplicacao: frontend + backend (3 microsservicos + 3 bancos MongoDB),
+o login por perfil, o fluxo de uso, como fazer deploy em uma VM gratuita
+e como demonstrar a tolerancia a falhas em uma apresentacao.
 
 --------------------------------------------------------------------
 1. REQUISITOS
 --------------------------------------------------------------------
-- Docker Desktop instalado e em execucao (inclui o Docker Compose).
-- Para abrir o frontend: Python 3 instalado OU a extensao
-  "Live Server" do VS Code (qualquer servidor HTTP estatico serve).
+- Docker Desktop (Windows/Mac) ou Docker Engine (Linux) instalado e em
+  execucao. Ja inclui o Docker Compose.
 - Opcional: MongoDB Compass para inspecionar os bancos.
 
+Nao e necessario instalar Python nem Node: tudo roda em containers,
+inclusive o frontend.
+
 Portas usadas na maquina (precisam estar livres):
+- 8080  frontend (site)
 - 5001  cadastro-service        - 27017 cadastro-mongo
 - 5002  faturamento-service     - 27019 faturamento-mongo
 - 5003  agendamento-service     - 27018 agendamento-mongo
-- 8080  frontend (sugestao)
 
 --------------------------------------------------------------------
 2. ARQUITETURA QUE SERA INICIADA
@@ -28,6 +31,7 @@ Cada microsservico tem o seu PROPRIO banco MongoDB (database per
 service) e um volume persistente proprio. Todos compartilham apenas
 uma rede Docker interna (aps-health-net) para se comunicarem por nome.
 
+  frontend            (8080) ---> chama os 3 servicos via REST/JSON
   cadastro-service    (5001) ---> cadastro-mongo    (db aps_health_cadastro)
   agendamento-service (5003) ---> agendamento-mongo (db aps_health_agendamento)
   faturamento-service (5002) ---> faturamento-mongo (db aps_health_faturamento)
@@ -37,30 +41,30 @@ Comunicacao entre servicos (REST/JSON, dentro da rede Docker):
   agendamento -> faturamento : obtem valor vigente da consulta
   agendamento -> faturamento : emite cobranca ao finalizar a consulta
 
-As URLs internas sao configuradas por variaveis de ambiente no
-docker-compose.yml (CADASTRO_URL, FATURAMENTO_URL), por isso os
-servicos NAO usam "localhost" para falar entre si, e sim o nome do
-container na rede (ex.: http://cadastro-service:5001).
+Seguranca / controle de acesso:
+  - O login emite um token JWT (cadastro-service).
+  - As operacoes de escrita (criar/editar/remover) sao protegidas por
+    perfil (RBAC). As leituras ficam abertas.
+  - As chamadas internas entre servicos usam um token interno
+    (X-Internal-Token), configurado no docker-compose.yml.
 
 --------------------------------------------------------------------
-3. SUBIR O BACKEND (UM UNICO COMANDO)
+3. SUBIR TUDO (UM UNICO COMANDO)
 --------------------------------------------------------------------
 1) Abra o terminal na pasta "docker" do projeto.
 2) Execute:
 
      docker compose up --build -d
 
-   - "--build" reconstroi as imagens dos servicos (use sempre que
-     o codigo Python mudar).
+   - "--build" reconstroi as imagens (use sempre que o codigo mudar).
    - "-d" sobe em segundo plano (modo "detached").
 
-3) Acompanhe ate todos ficarem saudaveis:
+3) Acompanhe ate todos ficarem prontos:
 
      docker compose ps
 
-   Os 3 *-mongo devem aparecer como "healthy" e, em seguida, os 3
-   *-service como "healthy". Os bancos sobem primeiro; os servicos
-   so iniciam depois (depends_on + healthcheck).
+   Os 3 *-mongo aparecem como "healthy"; depois sobem os 3 *-service e
+   o frontend (os bancos sobem primeiro, por depends_on + healthcheck).
 
 Para ver os logs (todos ou de um servico especifico):
 
@@ -68,103 +72,119 @@ Para ver os logs (todos ou de um servico especifico):
      docker compose logs -f agendamento-service
 
 --------------------------------------------------------------------
-4. VERIFICAR QUE O BACKEND ESTA NO AR
+4. ACESSAR O SITE E FAZER LOGIN
 --------------------------------------------------------------------
-Cada servico expoe GET /health. Teste no navegador ou no terminal:
+Abra no navegador:
+
+     http://localhost:8080
+
+A tela de login tem uma CAIXA DE SELECAO do tipo de acesso (perfil),
+mais usuario e senha. Em caso de credenciais erradas, aparece a
+mensagem "Login invalido".
+
+Usuarios administrativos padrao (criados automaticamente na 1a subida):
+
+     Perfil       Usuario      Senha
+     ---------    ---------    -----------
+     Diretor      diretor      diretor123
+     Gerente      gerente      gerente123
+     Atendente    atendente    atendente123
+     Medico       medico       medico123
+
+O PACIENTE cria o proprio acesso: na tela de login clique em
+"Criar cadastro", preencha os dados + usuario e senha. Ele ja entra
+logado na area do paciente.
+
+Verificacao rapida do backend (opcional) - cada servico expoe /health:
 
      http://localhost:5001/health   -> Cadastro Service funcionando
      http://localhost:5002/health   -> Faturamento Service funcionando
      http://localhost:5003/health   -> Agendamento Service funcionando
 
 --------------------------------------------------------------------
-5. SUBIR O FRONTEND
---------------------------------------------------------------------
-O frontend usa modulos JavaScript (ES Modules), portanto NAO pode ser
-aberto com clique-duplo no arquivo (file://). Ele precisa ser servido
-por um servidor HTTP. O CORS ja esta liberado nos servicos.
-
-Opcao A - Python (recomendada):
-  1) Abra um novo terminal na pasta "frontend".
-  2) Execute:
-        python -m http.server 8080
-  3) Acesse no navegador:
-        http://localhost:8080
-
-Opcao B - VS Code:
-  1) Instale a extensao "Live Server".
-  2) Clique com o botao direito em frontend/index.html.
-  3) Escolha "Open with Live Server".
-
-Observacao: o frontend aponta para http://localhost:5001/5002/5003
-(definido em frontend/Pages/shared.js). Mantenha o backend rodando na
-mesma maquina.
-
---------------------------------------------------------------------
-6. ORDEM CORRETA DE USO (IMPORTANTE)
+5. ORDEM CORRETA DE USO (IMPORTANTE)
 --------------------------------------------------------------------
 O agendamento valida disponibilidade real. Para conseguir agendar uma
-consulta, os pre-requisitos abaixo precisam existir. Faca nesta ordem,
-na area de ADMINISTRACAO (login > "Entrar na administracao"):
+consulta, os pre-requisitos abaixo precisam existir, nesta ordem:
 
-  1) Cadastrar ESPECIALIDADE        (perfil Diretor)
-  2) Cadastrar CONSULTORIO          (perfil Diretor)
-  3) Cadastrar MEDICO               (perfil Gerente) - vincule a
-     especialidade; o medico precisa de pelo menos uma.
-  4) Criar ESCALA do medico         (perfil Gerente) - escolha medico,
-     consultorio, dia da semana, vigencia e horario. A escala define
-     QUANDO o medico atende. Sem escala que cubra o dia/horario, o
-     agendamento e recusado.
-  5) Definir VALOR VIGENTE          (perfil Diretor) - informe o valor
-     e a data de vigencia. Esse valor sera "congelado" na consulta no
-     momento do agendamento.
-  6) (Opcional) Cadastrar MEDICAMENTOS e EXAMES (perfil Medico) para
-     usar durante a realizacao da consulta.
+  1) Logado como DIRETOR:
+       - Cadastrar ESPECIALIDADE
+       - Cadastrar CONSULTORIO
+       - Definir VALOR VIGENTE (valor + data). Esse valor fica
+         "congelado" na consulta no momento do agendamento.
 
-Depois disso:
+  2) Logado como GERENTE:
+       - Cadastrar MEDICO (vincule ao menos uma especialidade).
+       - Criar ESCALA do medico (medico, consultorio, dia da semana,
+         vigencia e horario). A escala define QUANDO o medico atende.
+         Sem escala que cubra o dia/horario, o agendamento e recusado.
 
-  7) PACIENTE: na home, "Fazer cadastro" cria o paciente. Em seguida,
-     na area do paciente, e possivel:
+  3) Logado como ATENDENTE (apoio operacional):
+       - Cadastrar/atualizar PACIENTES, cadastrar MEDICAMENTOS e EXAMES,
+         registrar PAGAMENTOS.
+
+  4) PACIENTE (cadastro proprio na tela de login):
        - Consultar disponibilidade do medico por data;
        - Agendar consulta (data/hora precisam cair numa escala livre);
        - Reagendar / solicitar cancelamento (so antes do horario e
          enquanto a consulta estiver AGENDADA);
        - Acompanhar suas consultas, cobrancas e pagamentos.
 
-  8) MEDICO: login > "Entrar como medico" > selecione seu registro.
-       - Visualiza suas escalas e suas consultas;
-       - Inicia a consulta (passa para EM_ANDAMENTO);
+  5) MEDICO (login medico/medico123, selecione seu registro):
+       - Visualiza suas escalas e consultas;
+       - Inicia a consulta (-> EM_ANDAMENTO);
        - Prescreve medicamentos, solicita exames, registra resultados;
-       - Encerra a consulta (passa para FINALIZADA). Ao encerrar, uma
-         COBRANCA e emitida automaticamente no Faturamento.
+       - Encerra a consulta (-> FINALIZADA). Ao encerrar, uma COBRANCA
+         e emitida automaticamente no Faturamento.
 
-  9) ADMINISTRACAO (Gerente): aprova ou rejeita as solicitacoes de
-     cancelamento pendentes. Ao aprovar, a consulta vira CANCELADA.
+  6) GERENTE: aprova ou rejeita as solicitacoes de cancelamento
+     pendentes. Ao aprovar, a consulta vira CANCELADA.
 
 Estados da consulta: AGENDADA -> EM_ANDAMENTO -> FINALIZADA
                      AGENDADA -> CANCELADA (via aprovacao do gerente)
 
 --------------------------------------------------------------------
-7. TOLERANCIA A FALHAS (COMPORTAMENTO ESPERADO)
+6. TOLERANCIA A FALHAS - COMPORTAMENTO E ROTEIRO DE DEMONSTRACAO
 --------------------------------------------------------------------
-O sistema continua util mesmo com servicos fora do ar:
+Comportamento esperado com servicos fora do ar:
 
 - Faturamento indisponivel:
   * O agendamento PROSSEGUE; a consulta e criada com valor nulo
     (degradacao graciosa).
-  * Ao finalizar a consulta, a cobranca apenas nao e emitida (pode ser
-    lancada manualmente depois na area de administracao).
+  * Ao finalizar, a cobranca apenas nao e emitida (pode ser lancada
+    manualmente depois).
 
 - Cadastro indisponivel:
-  * O agendamento que depende de validacao retorna erro controlado
-    503 (servico indisponivel), sem derrubar o restante.
+  * A operacao que depende de validacao retorna erro controlado 503
+    (servico indisponivel), sem derrubar os demais servicos.
 
-Para testar manualmente:
+ROTEIRO PARA APRESENTAR (passo a passo):
+
+  Preparacao (com tudo no ar): faca os cadastros do item 5 (1 e 2),
+  crie um paciente e deixe-o logado. Deixe um terminal aberto mostrando
+  "docker compose ps".
+
+  CENARIO 1 - Faturamento cai, agendamento continua:
      docker compose stop faturamento-service
-     (agende uma consulta -> valor_consulta vira nulo)
+  -> No site, como paciente, agende uma consulta num horario da escala.
+     Funciona, mas a consulta fica SEM valor (valor nulo).
+     Frase-chave: "mesmo com o Faturamento fora, o paciente agendou".
      docker compose start faturamento-service
 
+  CENARIO 2 - Cadastro cai, erro controlado (sem efeito cascata):
+  ATENCAO: faca o login ANTES de derrubar o cadastro (o login usa o
+  cadastro). Estando logado:
+     docker compose stop cadastro-service
+  -> Tente agendar: o sistema responde com erro controlado 503
+     (servico indisponivel), sem travar. Mostre que faturamento e
+     agendamento seguem de pe (docker compose ps / .../5003/health).
+     docker compose start cadastro-service
+
+  Conclusao demonstrada: a indisponibilidade de um microsservico NAO
+  derruba os demais (requisito de tolerancia a falhas do minimundo).
+
 --------------------------------------------------------------------
-8. INSPECIONAR OS BANCOS MONGODB (OPCIONAL)
+7. INSPECIONAR OS BANCOS MONGODB (OPCIONAL)
 --------------------------------------------------------------------
 Cada Mongo esta exposto em uma porta diferente da maquina:
 
@@ -176,58 +196,94 @@ Use o MongoDB Compass com essas URIs, ou o mongosh dentro do container:
 
      docker exec -it cadastro-mongo mongosh aps_health_cadastro
      > db.pacientes.find()
+     > db.usuarios.find()     (usuarios de login + senha com hash)
 
-A colecao "counters" controla os ids sequenciais (id 1, 2, 3...). NAO
-a remova se quiser preservar a contagem.
+A colecao "counters" controla os ids sequenciais. NAO a remova se
+quiser preservar a contagem.
 
 --------------------------------------------------------------------
-9. PARAR / REINICIAR / RESETAR
+8. PARAR / REINICIAR / RESETAR
 --------------------------------------------------------------------
-Parar mantendo os dados:
-     docker compose stop
+Parar mantendo os dados:        docker compose stop
+Subir novamente (sem rebuild):  docker compose up -d
+Derrubar os containers:         docker compose down
+Resetar TUDO (apaga os bancos): docker compose down -v
+Reconstruir apos mudar codigo:  docker compose up --build -d
 
-Subir novamente (sem rebuild):
-     docker compose up -d
+--------------------------------------------------------------------
+9. DEPLOY EM UMA VM GRATUITA (para deixar acessivel na internet)
+--------------------------------------------------------------------
+A forma mais simples de manter a arquitetura atual e rodar o mesmo
+docker-compose em uma VM. Uma opcao gratuita permanente e a
+Oracle Cloud Always Free.
 
-Derrubar e remover os containers (mantendo os dados nos volumes):
-     docker compose down
+  1) Criar a VM:
+     - Conta em cloud.oracle.com -> Compute -> Instances -> Create.
+     - Imagem Ubuntu; shape Always Free (VM.Standard.A1.Flex ou
+       E2.1.Micro). Baixe a chave SSH.
 
-Resetar TUDO, apagando tambem os bancos (volumes):
-     docker compose down -v
-   (na proxima subida, os bancos comecam vazios)
+  2) Abrir as portas (a parte mais chata da Oracle):
+     - No painel: VCN -> Security List -> Ingress Rules -> liberar
+       TCP 8080, 5001, 5002, 5003.
+     - Na VM (Ubuntu da Oracle bloqueia por iptables):
+         sudo iptables -I INPUT 6 -m state --state NEW -p tcp \
+           -m multiport --dports 8080,5001,5002,5003 -j ACCEPT
+         sudo netfilter-persistent save
 
-Reconstruir apos mudar o codigo:
-     docker compose up --build -d
+  3) Instalar o Docker na VM:
+         curl -fsSL https://get.docker.com | sudo sh
+         sudo usermod -aG docker $USER   (saia e entre no SSH de novo)
+
+  4) Trazer o codigo e subir:
+         git clone <URL_DO_REPOSITORIO>
+         cd Sistema-Clinicas-Microsservicos/docker
+         docker compose up --build -d
+
+  5) Acessar:  http://SEU_IP_PUBLICO:8080
+
+Observacao sobre as URLs: o frontend descobre sozinho o endereco dos
+servicos a partir do host usado para abrir o site (ex.: abrindo
+http://SEU_IP:8080, ele chama http://SEU_IP:5001/5002/5003). Se precisar
+apontar para outro host/portas, edite frontend/config.js.
+
+Dica: para a DEMONSTRACAO de tolerancia a falhas, rodar LOCALMENTE
+(secao 6) e o mais confiavel, pois o "stop/start" e instantaneo e voce
+controla exatamente qual servico esta fora do ar.
 
 --------------------------------------------------------------------
 10. PROBLEMAS COMUNS
 --------------------------------------------------------------------
-- "porta ja em uso": outro processo esta usando 5001/5002/5003 ou
+- "Login invalido": usuario/senha incorretos ou perfil selecionado
+  diferente do perfil do usuario. Confira as credenciais da secao 4.
+
+- "Acesso negado para o seu perfil" (403): voce tentou uma acao que
+  pertence a outro perfil. Entre com o perfil correto (secao 5).
+
+- "Horario indisponivel" ao agendar: o medico nao tem escala que cubra
+  aquele dia/horario, ou a data ja passou. Crie a escala (secao 5.2).
+
+- "porta ja em uso": outro processo usa 8080/5001/5002/5003 ou
   27017-27019. Pare o processo conflitante ou ajuste as portas no
   docker-compose.yml.
 
-- Frontend abre mas nada carrega: confirme que abriu via http://
-  (servidor HTTP), e nao via file://, e que o backend esta no ar.
+- Site abre mas nada carrega: confirme que os servicos estao no ar
+  (docker compose ps) e acessiveis (secao 4).
 
-- "Horario indisponivel" ao agendar: o medico nao tem escala que
-  cubra aquele dia da semana / horario, ou a data ja passou. Crie a
-  escala correspondente (passo 6.4).
+- Mudei o codigo e nada mudou: refaca com "--build".
 
-- Mudei o codigo Python e nada mudou: refaca com "--build".
-
-- Docker nao instalado: instale o Docker Desktop, reinicie a maquina
-  se necessario e rode novamente "docker compose up --build -d" dentro
-  da pasta docker.
+- Docker nao instalado/parado: instale/abra o Docker Desktop e rode de
+  novo "docker compose up --build -d" dentro da pasta docker.
 
 --------------------------------------------------------------------
 11. RESUMO RAPIDO
 --------------------------------------------------------------------
   cd docker
-  docker compose up --build -d        # sobe backend + 3 MongoDB
-  docker compose ps                   # confere saude dos containers
-  cd ../frontend
-  python -m http.server 8080          # sobe o frontend
+  docker compose up --build -d     # sobe frontend + 3 servicos + 3 Mongo
+  docker compose ps                # confere os containers
   # navegador: http://localhost:8080
-  # ordem de uso: especialidade > consultorio > medico > escala >
-  #               valor > cadastro do paciente > agendar
+  # login: diretor/diretor123, gerente/gerente123, atendente/atendente123,
+  #        medico/medico123 ; paciente cria o proprio acesso
+  # ordem de uso: especialidade > consultorio > valor (diretor) >
+  #               medico > escala (gerente) > cadastro paciente > agendar
+  # demo de falha: docker compose stop/start faturamento-service
 ====================================================================

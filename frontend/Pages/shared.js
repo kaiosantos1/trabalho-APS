@@ -1,7 +1,17 @@
+// As URLs dos serviços são derivadas do endereço usado para abrir o frontend,
+// para funcionar tanto localmente (localhost) quanto em uma VM (IP/domínio público).
+// É possível sobrescrever via window.APP_CONFIG (ver frontend/config.js).
+const _cfg = (typeof window !== "undefined" && window.APP_CONFIG) || {};
+const _host = (typeof window !== "undefined" && window.location && window.location.hostname) || "localhost";
+const _proto = (typeof window !== "undefined" && window.location && window.location.protocol.startsWith("http"))
+    ? window.location.protocol
+    : "http:";
+const _base = _cfg.serviceHost || `${_proto}//${_host}`;
+
 export const SERVICE_URLS = {
-    cadastro: "http://localhost:5001",
-    faturamento: "http://localhost:5002",
-    agendamento: "http://localhost:5003"
+    cadastro: _cfg.cadastroUrl || `${_base}:5001`,
+    faturamento: _cfg.faturamentoUrl || `${_base}:5002`,
+    agendamento: _cfg.agendamentoUrl || `${_base}:5003`
 };
 
 export const STORAGE_KEYS = {

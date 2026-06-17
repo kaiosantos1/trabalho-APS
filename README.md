@@ -145,10 +145,10 @@ Atualmente o projeto encontra-se na fase de:
 - [x] Implementação das APIs REST
 - [x] Comunicação entre microsserviços (validação + valor vigente + emissão de cobrança)
 - [x] Persistência de dados (MongoDB — um banco por serviço)
-- [ ] Controle de acesso por perfis (RBAC) — perfis implementados no frontend; autenticação/autorização no backend prevista para evolução
+- [x] Controle de acesso por perfis (RBAC) — autenticação por usuário/senha (JWT) e autorização por perfil nas operações de escrita dos 3 serviços
 
 ### Infraestrutura
-- [x] Containerização com Docker
+- [x] Containerização com Docker (inclui o frontend)
 - [x] Configuração do ambiente (Docker Compose)
 - [x] Testes integrados (fluxo completo + cenários de tolerância a falhas validados)
-- [ ] Deploy
+- [ ] Deploy — projeto pronto para deploy; instruções de execução e de publicação em VM gratuita em `docker/instrucoes-para-rodar-a-aplicacao.txt`
