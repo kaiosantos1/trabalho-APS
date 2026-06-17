@@ -54,7 +54,8 @@ Seguranca / controle de acesso:
 1) Abra o terminal na pasta "docker" do projeto.
 2) Execute:
 
-     docker compose up --build -d
+    1º) docker compose up --build -d
+2º) na pasta do frontend : python -m http.server 8000	
 
    - "--build" reconstroi as imagens (use sempre que o codigo mudar).
    - "-d" sobe em segundo plano (modo "detached").
@@ -158,51 +159,9 @@ Comportamento esperado com servicos fora do ar:
   * A operacao que depende de validacao retorna erro controlado 503
     (servico indisponivel), sem derrubar os demais servicos.
 
-ROTEIRO PARA APRESENTAR (passo a passo):
-
-  Preparacao (com tudo no ar): faca os cadastros do item 5 (1 e 2),
-  crie um paciente e deixe-o logado. Deixe um terminal aberto mostrando
-  "docker compose ps".
-
-  CENARIO 1 - Faturamento cai, agendamento continua:
-     docker compose stop faturamento-service
-  -> No site, como paciente, agende uma consulta num horario da escala.
-     Funciona, mas a consulta fica SEM valor (valor nulo).
-     Frase-chave: "mesmo com o Faturamento fora, o paciente agendou".
-     docker compose start faturamento-service
-
-  CENARIO 2 - Cadastro cai, erro controlado (sem efeito cascata):
-  ATENCAO: faca o login ANTES de derrubar o cadastro (o login usa o
-  cadastro). Estando logado:
-     docker compose stop cadastro-service
-  -> Tente agendar: o sistema responde com erro controlado 503
-     (servico indisponivel), sem travar. Mostre que faturamento e
-     agendamento seguem de pe (docker compose ps / .../5003/health).
-     docker compose start cadastro-service
-
-  Conclusao demonstrada: a indisponibilidade de um microsservico NAO
-  derruba os demais (requisito de tolerancia a falhas do minimundo).
 
 --------------------------------------------------------------------
-7. INSPECIONAR OS BANCOS MONGODB (OPCIONAL)
---------------------------------------------------------------------
-Cada Mongo esta exposto em uma porta diferente da maquina:
-
-  cadastro-mongo     mongodb://localhost:27017   (db aps_health_cadastro)
-  agendamento-mongo  mongodb://localhost:27018   (db aps_health_agendamento)
-  faturamento-mongo  mongodb://localhost:27019   (db aps_health_faturamento)
-
-Use o MongoDB Compass com essas URIs, ou o mongosh dentro do container:
-
-     docker exec -it cadastro-mongo mongosh aps_health_cadastro
-     > db.pacientes.find()
-     > db.usuarios.find()     (usuarios de login + senha com hash)
-
-A colecao "counters" controla os ids sequenciais. NAO a remova se
-quiser preservar a contagem.
-
---------------------------------------------------------------------
-8. PARAR / REINICIAR / RESETAR
+7. PARAR / REINICIAR / RESETAR
 --------------------------------------------------------------------
 Parar mantendo os dados:        docker compose stop
 Subir novamente (sem rebuild):  docker compose up -d
@@ -210,80 +169,21 @@ Derrubar os containers:         docker compose down
 Resetar TUDO (apaga os bancos): docker compose down -v
 Reconstruir apos mudar codigo:  docker compose up --build -d
 
---------------------------------------------------------------------
-9. DEPLOY EM UMA VM GRATUITA (para deixar acessivel na internet)
---------------------------------------------------------------------
-A forma mais simples de manter a arquitetura atual e rodar o mesmo
-docker-compose em uma VM. Uma opcao gratuita permanente e a
-Oracle Cloud Always Free.
-
-  1) Criar a VM:
-     - Conta em cloud.oracle.com -> Compute -> Instances -> Create.
-     - Imagem Ubuntu; shape Always Free (VM.Standard.A1.Flex ou
-       E2.1.Micro). Baixe a chave SSH.
-
-  2) Abrir as portas (a parte mais chata da Oracle):
-     - No painel: VCN -> Security List -> Ingress Rules -> liberar
-       TCP 8080, 5001, 5002, 5003.
-     - Na VM (Ubuntu da Oracle bloqueia por iptables):
-         sudo iptables -I INPUT 6 -m state --state NEW -p tcp \
-           -m multiport --dports 8080,5001,5002,5003 -j ACCEPT
-         sudo netfilter-persistent save
-
-  3) Instalar o Docker na VM:
-         curl -fsSL https://get.docker.com | sudo sh
-         sudo usermod -aG docker $USER   (saia e entre no SSH de novo)
-
-  4) Trazer o codigo e subir:
-         git clone <URL_DO_REPOSITORIO>
-         cd Sistema-Clinicas-Microsservicos/docker
-         docker compose up --build -d
-
-  5) Acessar:  http://SEU_IP_PUBLICO:8080
-
-Observacao sobre as URLs: o frontend descobre sozinho o endereco dos
-servicos a partir do host usado para abrir o site (ex.: abrindo
-http://SEU_IP:8080, ele chama http://SEU_IP:5001/5002/5003). Se precisar
-apontar para outro host/portas, edite frontend/config.js.
-
-Dica: para a DEMONSTRACAO de tolerancia a falhas, rodar LOCALMENTE
-(secao 6) e o mais confiavel, pois o "stop/start" e instantaneo e voce
-controla exatamente qual servico esta fora do ar.
 
 --------------------------------------------------------------------
-10. PROBLEMAS COMUNS
+8. SIMULAR OS SERVIÇOS SEPARADAMENTE
 --------------------------------------------------------------------
-- "Login invalido": usuario/senha incorretos ou perfil selecionado
-  diferente do perfil do usuario. Confira as credenciais da secao 4.
+SUBIR INDEPENDENTEMENTE:
+docker compose up -d cadastro-service      # sobe cadastro-service + cadastro-mongo 
+docker compose up -d faturamento-service   # sobe faturamento-service + faturamento-mongo
+docker compose up -d agendamento-service   # sobe agendamento-service + agendamento-mongo
 
-- "Acesso negado para o seu perfil" (403): voce tentou uma acao que
-  pertence a outro perfil. Entre com o perfil correto (secao 5).
+CONFERIR:
+docker compose ps
 
-- "Horario indisponivel" ao agendar: o medico nao tem escala que cubra
-  aquele dia/horario, ou a data ja passou. Crie a escala (secao 5.2).
+DESLIGAR SERVIÇOS:
+docker compose stop cadastro-service faturamento-service
+# sobra só o agendamento (e os mongos) de pé
 
-- "porta ja em uso": outro processo usa 8080/5001/5002/5003 ou
-  27017-27019. Pare o processo conflitante ou ajuste as portas no
-  docker-compose.yml.
-
-- Site abre mas nada carrega: confirme que os servicos estao no ar
-  (docker compose ps) e acessiveis (secao 4).
-
-- Mudei o codigo e nada mudou: refaca com "--build".
-
-- Docker nao instalado/parado: instale/abra o Docker Desktop e rode de
-  novo "docker compose up --build -d" dentro da pasta docker.
-
---------------------------------------------------------------------
-11. RESUMO RAPIDO
---------------------------------------------------------------------
-  cd docker
-  docker compose up --build -d     # sobe frontend + 3 servicos + 3 Mongo
-  docker compose ps                # confere os containers
-  # navegador: http://localhost:8080
-  # login: diretor/diretor123, gerente/gerente123, atendente/atendente123,
-  #        medico/medico123 ; paciente cria o proprio acesso
-  # ordem de uso: especialidade > consultorio > valor (diretor) >
-  #               medico > escala (gerente) > cadastro paciente > agendar
-  # demo de falha: docker compose stop/start faturamento-service
-====================================================================
+RELIGAR SERVIÇOS
+docker compose start cadastro-service faturamento-service
