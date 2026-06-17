@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 pagamentos_bp = Blueprint("pagamentos", __name__)
 
@@ -21,6 +22,7 @@ def listar_pagamentos():
 
 
 @pagamentos_bp.route("/pagamentos", methods=["POST"])
+@requer_perfil("atendente")
 def criar_pagamento():
     dados = request.get_json(silent=True) or {}
 
@@ -45,6 +47,7 @@ def buscar_pagamento(id):
 
 
 @pagamentos_bp.route("/pagamentos/<int:id>", methods=["PUT"])
+@requer_perfil("atendente")
 def atualizar_pagamento(id):
     dados = request.get_json(silent=True) or {}
 

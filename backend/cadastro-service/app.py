@@ -7,6 +7,7 @@ from routes.pacientes import pacientes_bp
 from routes.consultorios import consultorios_bp
 from routes.exames import exames_bp
 from routes.medicamentos import medicamentos_bp
+from routes.auth import auth_bp, seed_usuarios
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +18,13 @@ app.register_blueprint(pacientes_bp)
 app.register_blueprint(consultorios_bp)
 app.register_blueprint(exames_bp)
 app.register_blueprint(medicamentos_bp)
+app.register_blueprint(auth_bp)
+
+# Cria os usuarios administrativos padrao na inicializacao (idempotente).
+try:
+    seed_usuarios()
+except Exception as erro:  # nao impede o servico de subir se o Mongo demorar
+    print(f"[aviso] nao foi possivel semear usuarios: {erro}")
 
 
 @app.route("/health", methods=["GET"])

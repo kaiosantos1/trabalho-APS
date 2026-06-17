@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 
 import repositorio
 from estados import EstadoConsulta
+from seguranca import requer_perfil
 
 cancelamentos_bp = Blueprint("cancelamentos", __name__)
 
@@ -13,6 +14,7 @@ def listar_pendentes():
 
 
 @cancelamentos_bp.route("/solicitacoes-cancelamento/<int:id>/aprovar", methods=["PUT"])
+@requer_perfil("gerente")
 def aprovar_cancelamento(id):
     solicitacao = repositorio.buscar_solicitacao(id)
     if solicitacao is None:
@@ -33,6 +35,7 @@ def aprovar_cancelamento(id):
 
 
 @cancelamentos_bp.route("/solicitacoes-cancelamento/<int:id>/rejeitar", methods=["PUT"])
+@requer_perfil("gerente")
 def rejeitar_cancelamento(id):
     solicitacao = repositorio.buscar_solicitacao(id)
     if solicitacao is None:

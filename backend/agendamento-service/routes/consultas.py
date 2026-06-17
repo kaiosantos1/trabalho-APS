@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 
 import repositorio
 from estados import EstadoConsulta
+from seguranca import requer_perfil
 from services.integracao import (
     ServicoIndisponivel,
     emitir_cobranca,
@@ -92,6 +93,7 @@ def _horario_ocupado(medico_id, data_hora, ignorar_consulta_id=None):
 # ---------------------------------------------------------------------------
 
 @consultas_bp.route("/consultas", methods=["POST"])
+@requer_perfil("paciente", "atendente")
 def agendar_consulta():
     dados = request.get_json(silent=True) or {}
 
@@ -222,6 +224,7 @@ def consultar_disponibilidade():
 # ---------------------------------------------------------------------------
 
 @consultas_bp.route("/consultas/<int:id>/reagendar", methods=["PUT"])
+@requer_perfil("paciente", "atendente")
 def reagendar_consulta(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -263,6 +266,7 @@ def reagendar_consulta(id):
 # ---------------------------------------------------------------------------
 
 @consultas_bp.route("/consultas/<int:id>/iniciar", methods=["PUT"])
+@requer_perfil("medico")
 def iniciar_consulta(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -281,6 +285,7 @@ def iniciar_consulta(id):
 
 
 @consultas_bp.route("/consultas/<int:id>/finalizar", methods=["PUT"])
+@requer_perfil("medico")
 def finalizar_consulta(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -314,6 +319,7 @@ def finalizar_consulta(id):
 
 
 @consultas_bp.route("/consultas/<int:id>/prescricoes", methods=["POST"])
+@requer_perfil("medico")
 def prescrever_medicamento(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -336,6 +342,7 @@ def prescrever_medicamento(id):
 
 
 @consultas_bp.route("/consultas/<int:id>/exames-solicitados", methods=["POST"])
+@requer_perfil("medico")
 def solicitar_exame(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -359,6 +366,7 @@ def solicitar_exame(id):
 
 
 @consultas_bp.route("/consultas/<int:id>/resultados-exames", methods=["POST"])
+@requer_perfil("medico")
 def registrar_resultado_exame(id):
     dados = request.get_json(silent=True) or {}
     consulta = repositorio.buscar_consulta(id)
@@ -384,6 +392,7 @@ def registrar_resultado_exame(id):
 # ---------------------------------------------------------------------------
 
 @consultas_bp.route("/consultas/<int:id>/solicitar-cancelamento", methods=["POST"])
+@requer_perfil("paciente", "atendente")
 def solicitar_cancelamento(id):
     consulta = repositorio.buscar_consulta(id)
     if consulta is None:

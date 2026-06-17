@@ -3,6 +3,7 @@ from datetime import date
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 valores_bp = Blueprint("valores", __name__)
 
@@ -26,6 +27,7 @@ def listar_valores():
 
 
 @valores_bp.route("/valores", methods=["POST"])
+@requer_perfil("diretor")
 def criar_valor():
     dados = request.get_json(silent=True) or {}
 
@@ -58,6 +60,7 @@ def buscar_valor(id):
 
 
 @valores_bp.route("/valores/<int:id>", methods=["PUT"])
+@requer_perfil("diretor")
 def atualizar_valor(id):
     dados = request.get_json(silent=True) or {}
 
