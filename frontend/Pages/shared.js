@@ -7,7 +7,8 @@ export const SERVICE_URLS = {
 export const STORAGE_KEYS = {
     role: "areashealth.role",
     patient: "areashealth.patient",
-    patientRegistry: "areashealth.patientRegistry"
+    patientRegistry: "areashealth.patientRegistry",
+    medico: "areashealth.medico"
 };
 
 export function getStoredRole() {
@@ -68,6 +69,24 @@ export function addStoredPatientToRegistry(patient) {
 
 export function clearStoredPatient() {
     localStorage.removeItem(STORAGE_KEYS.patient);
+}
+
+export function getStoredMedico() {
+    const rawValue = localStorage.getItem(STORAGE_KEYS.medico);
+
+    if (!rawValue) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(rawValue);
+    } catch {
+        return null;
+    }
+}
+
+export function setStoredMedico(medico) {
+    localStorage.setItem(STORAGE_KEYS.medico, JSON.stringify(medico));
 }
 
 export function parseCsvList(value) {

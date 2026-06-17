@@ -3,7 +3,8 @@ import { renderAdministradorPage } from "./Pages/AdministradorPage.js";
 import { renderCadastroPage } from "./Pages/CadastroPage.js";
 import { renderLoginPage } from "./Pages/LoginPage.js";
 import { renderUsuarioPage } from "./Pages/UsuarioPage.js";
-import { getStoredPatient, getStoredRole } from "./Pages/shared.js";
+import { renderMedicoPage } from "./Pages/MedicoPage.js";
+import { getStoredMedico, getStoredPatient, getStoredRole } from "./Pages/shared.js";
 
 const app = document.getElementById("app");
 const flash = document.getElementById("global-message");
@@ -14,6 +15,7 @@ const renderers = {
     login: renderLoginPage,
     cadastro: renderCadastroPage,
     usuario: renderUsuarioPage,
+    medico: renderMedicoPage,
     administrador: renderAdministradorPage
 };
 
@@ -38,9 +40,14 @@ function navigateTo(route) {
 function resolveUserLabel() {
     const role = getStoredRole();
     const patient = getStoredPatient();
+    const medico = getStoredMedico();
 
     if (role === "administrador") {
-        return "Administrador";
+        return "Administração (Diretor / Gerente / Atendente)";
+    }
+
+    if (role === "medico") {
+        return medico?.nome ? `Dr(a). ${medico.nome}` : "Médico";
     }
 
     if (patient?.nome) {

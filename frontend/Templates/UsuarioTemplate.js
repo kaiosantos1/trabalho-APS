@@ -84,6 +84,60 @@ export function usuarioPageTemplate({ paciente }) {
             </article>
         </section>
 
+        <section class="panel-grid two-columns">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Disponibilidade</span>
+                        <h3>Consultar horários do médico</h3>
+                    </div>
+                    <div class="pill">Antes de agendar</div>
+                </div>
+
+                <form id="disponibilidade-form" class="form-grid compact-grid">
+                    <label class="field">
+                        <span>Médico</span>
+                        <select id="dispMedico" required></select>
+                    </label>
+
+                    <label class="field">
+                        <span>Data</span>
+                        <input id="dispData" type="date" required>
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Consultar disponibilidade</button>
+                    </div>
+                </form>
+
+                <div class="list-panel">
+                    <ul id="listaDisponibilidade" class="list"></ul>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Faturamento Service</span>
+                        <h3>Meu financeiro</h3>
+                    </div>
+                    <div class="pill">Cobranças e pagamentos</div>
+                </div>
+
+                <div class="finance-grid">
+                    <div class="list-panel">
+                        <h4>Cobranças</h4>
+                        <ul id="listaCobrancasPaciente" class="list"></ul>
+                    </div>
+
+                    <div class="list-panel">
+                        <h4>Pagamentos</h4>
+                        <ul id="listaPagamentosPaciente" class="list"></ul>
+                    </div>
+                </div>
+            </article>
+        </section>
+
         <section class="panel-grid user-actions-grid">
             <article class="card schedule-card">
                 <div class="card-header">

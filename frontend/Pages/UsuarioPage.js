@@ -1,4 +1,4 @@
-import { formatDateTime, getStoredPatient, requestJson } from "./shared.js";
+import { formatCurrency, formatDate, formatDateTime, getStoredPatient, requestJson } from "./shared.js";
 import { usuarioPageTemplate, usuarioSemCadastroTemplate } from "../Templates/UsuarioTemplate.js";
 
 function renderSelectOptions(items, placeholder) {
@@ -37,10 +37,12 @@ async function carregarCatalogos(container) {
     const medicoSelect = container.querySelector("#consultaMedico");
     const especialidadeSelect = container.querySelector("#consultaEspecialidade");
     const medicoReagendarSelect = container.querySelector("#reagendarMedico");
+    const disponibilidadeSelect = container.querySelector("#dispMedico");
 
     medicoSelect.innerHTML = renderSelectOptions(medicos, "Selecione o médico");
     medicoReagendarSelect.innerHTML = renderSelectOptions(medicos, "Manter médico atual");
     especialidadeSelect.innerHTML = renderSelectOptions(especialidades, "Selecione a especialidade");
+    disponibilidadeSelect.innerHTML = renderSelectOptions(medicos, "Selecione o médico");
 
     return {
         medicos,
@@ -61,6 +63,53 @@ async function carregarConsultas(container, pacienteId, medicoMap, especialidade
     }
 }
 
+async function carregarFinanceiro(container, pacienteId) {
+    const cobrancasElement = container.querySelector("#listaCobrancasPaciente");
+    const pagamentosElement = container.querySelector("#listaPagamentosPaciente");
+
+    const [cobrancas, pagamentos] = await Promise.all([
+        requestJson("faturamento", `/cobrancas?paciente_id=${pacienteId}`).catch(() => []),
+        requestJson("faturamento", `/pagamentos?paciente_id=${pacienteId}`).catch(() => [])
+    ]);
+
+    cobrancasElement.innerHTML = cobrancas.length
+        ? cobrancas.map(cobranca => `
+            <li class="list-item">
+                <div><strong>${formatCurrency(cobranca.valor)}</strong><span>${cobranca.status || "-"}</span></div>
+                <div class="muted">Consulta ${cobranca.consulta_id ?? "-"} • Emissão: ${formatDate(cobranca.data_emissao)}</div>
+            </li>
+        `).join("")
+        : '<li class="empty-state">Nenhuma cobrança encontrada.</li>';
+
+    pagamentosElement.innerHTML = pagamentos.length
+        ? pagamentos.map(pagamento => `
+            <li class="list-item">
+                <div><strong>${formatCurrency(pagamento.valor)}</strong><span>${pagamento.status || "-"}</span></div>
+                <div class="muted">Consulta ${pagamento.consulta_id ?? "-"} • Pagamento: ${formatDate(pagamento.data_pagamento)}</div>
+            </li>
+        `).join("")
+        : '<li class="empty-state">Nenhum pagamento encontrado.</li>';
+}
+
+function renderDisponibilidade(listaElement, dados) {
+    const escalas = dados.escalas || [];
+    const ocupados = dados.horarios_ocupados || [];
+
+    if (!escalas.length) {
+        listaElement.innerHTML = `<li class="empty-state">O médico não possui escala em ${dados.dia_semana} (${dados.data}).</li>`;
+        return;
+    }
+
+    listaElement.innerHTML = escalas.map(escala => `
+        <li class="list-item">
+            <div><strong>${escala.hora_inicial}–${escala.hora_final}</strong><span>${dados.dia_semana}</span></div>
+            <div class="muted">Consultório ${escala.consultorio_id}</div>
+        </li>
+    `).join("") + (ocupados.length
+        ? `<li class="list-item"><div class="muted">Horários já ocupados: ${ocupados.map(formatDateTime).join(", ")}</div></li>`
+        : "");
+}
+
 export async function renderUsuarioPage(container, context) {
     const paciente = getStoredPatient();
 
@@ -78,9 +127,25 @@ export async function renderUsuarioPage(container, context) {
     try {
         catalogos = await carregarCatalogos(container);
         await carregarConsultas(container, paciente.id, catalogos.medicoMap, catalogos.especialidadeMap);
+        await carregarFinanceiro(container, paciente.id);
     } catch (error) {
         context.notify("error", error.message);
     }
+
+    container.querySelector("#disponibilidade-form").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const medicoId = Number(container.querySelector("#dispMedico").value);
+        const data = container.querySelector("#dispData").value;
+        const listaElement = container.querySelector("#listaDisponibilidade");
+
+        try {
+            const dados = await requestJson("agendamento", `/consultas/disponibilidade?medico_id=${medicoId}&data=${data}`);
+            renderDisponibilidade(listaElement, dados);
+        } catch (error) {
+            listaElement.innerHTML = `<li class="empty-state error-state">${error.message}</li>`;
+        }
+    });
 
     container.querySelector("#consulta-form").addEventListener("submit", async event => {
         event.preventDefault();

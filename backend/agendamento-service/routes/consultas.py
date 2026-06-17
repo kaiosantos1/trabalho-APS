@@ -6,6 +6,7 @@ import repositorio
 from estados import EstadoConsulta
 from services.integracao import (
     ServicoIndisponivel,
+    emitir_cobranca,
     obter_valor_vigente,
     validar_especialidade,
     validar_medico,
@@ -21,6 +22,58 @@ DIAS_SEMANA = [
 
 def _agora():
     return datetime.now().isoformat(timespec="seconds")
+
+
+def _partes_data_hora(data_hora):
+    # Aceita "YYYY-MM-DDTHH:MM" ou "YYYY-MM-DDTHH:MM:SS" e devolve (data, "HH:MM").
+    data_part, _, hora_part = str(data_hora).partition("T")
+    return data_part, hora_part[:5]
+
+
+def _ja_passou(data_hora):
+    # Compara o horario previsto da consulta com o momento atual.
+    try:
+        return datetime.fromisoformat(str(data_hora)) < datetime.now()
+    except ValueError:
+        return False
+
+
+def _medico_disponivel(medico_id, data_hora):
+    # Verifica se o horario solicitado cai dentro de alguma escala vigente do medico
+    # naquele dia da semana (regra de disponibilidade do minimundo).
+    data_part, hora = _partes_data_hora(data_hora)
+    try:
+        dia_semana = DIAS_SEMANA[date.fromisoformat(data_part).weekday()]
+    except ValueError:
+        return False
+
+    for escala in repositorio.listar("escalas"):
+        if escala["medico_id"] != medico_id:
+            continue
+        if escala["dia_semana"] != dia_semana:
+            continue
+        if escala["data_inicio_vigencia"] > data_part:
+            continue
+        if escala["data_fim_vigencia"] is not None and data_part > escala["data_fim_vigencia"]:
+            continue
+        if escala["hora_inicial"] <= hora < escala["hora_final"]:
+            return True
+
+    return False
+
+
+def _horario_ocupado(medico_id, data_hora, ignorar_consulta_id=None):
+    # Impede agendar dois pacientes no mesmo medico/horario (consultas ativas).
+    for consulta in repositorio.listar("consultas"):
+        if ignorar_consulta_id is not None and consulta["id"] == ignorar_consulta_id:
+            continue
+        if (
+            consulta["medico_id"] == medico_id
+            and consulta["data_hora"] == data_hora
+            and consulta["estado"] in (EstadoConsulta.AGENDADA, EstadoConsulta.EM_ANDAMENTO)
+        ):
+            return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -41,6 +94,9 @@ def agendar_consulta():
             "erro": "paciente_id, medico_id e data_hora sao obrigatorios"
         }), 400
 
+    if _ja_passou(data_hora):
+        return jsonify({"erro": "Nao e possivel agendar em um horario que ja passou"}), 409
+
     try:
         if not validar_paciente(paciente_id):
             return jsonify({"erro": "Paciente nao encontrado no Cadastro"}), 404
@@ -50,6 +106,16 @@ def agendar_consulta():
             return jsonify({"erro": "Especialidade nao encontrada no Cadastro"}), 404
     except ServicoIndisponivel as erro:
         return jsonify({"erro": str(erro)}), 503
+
+    if not _medico_disponivel(medico_id, data_hora):
+        return jsonify({
+            "erro": "Horario indisponivel: o medico nao possui escala que cubra esse dia/horario"
+        }), 409
+
+    if _horario_ocupado(medico_id, data_hora):
+        return jsonify({
+            "erro": "Horario ja ocupado para este medico"
+        }), 409
 
     valor_consulta = obter_valor_vigente()
 
@@ -156,8 +222,27 @@ def reagendar_consulta(id):
             "erro": "Apenas consultas no estado AGENDADA podem ser reagendadas"
         }), 409
 
-    consulta["data_hora"] = dados.get("data_hora", consulta["data_hora"])
-    consulta["medico_id"] = dados.get("medico_id", consulta["medico_id"])
+    if _ja_passou(consulta["data_hora"]):
+        return jsonify({
+            "erro": "Nao e possivel reagendar: o horario previsto da consulta ja passou"
+        }), 409
+
+    nova_data_hora = dados.get("data_hora", consulta["data_hora"])
+    novo_medico_id = dados.get("medico_id", consulta["medico_id"])
+
+    if _ja_passou(nova_data_hora):
+        return jsonify({"erro": "O novo horario ja passou"}), 409
+
+    if not _medico_disponivel(novo_medico_id, nova_data_hora):
+        return jsonify({
+            "erro": "Horario indisponivel: o medico nao possui escala que cubra esse dia/horario"
+        }), 409
+
+    if _horario_ocupado(novo_medico_id, nova_data_hora, ignorar_consulta_id=id):
+        return jsonify({"erro": "Horario ja ocupado para este medico"}), 409
+
+    consulta["data_hora"] = nova_data_hora
+    consulta["medico_id"] = novo_medico_id
     consulta = repositorio.substituir("consultas", id, consulta)
     return jsonify(consulta)
 
@@ -202,6 +287,18 @@ def finalizar_consulta(id):
     consulta["estado"] = EstadoConsulta.FINALIZADA
     consulta["data_hora_encerramento"] = dados.get("data_hora_encerramento") or _agora()
     consulta = repositorio.substituir("consultas", id, consulta)
+
+    # Ao finalizar, emite automaticamente a cobranca da consulta no Faturamento.
+    # Tolerante a falhas: se o faturamento estiver fora do ar, a consulta segue
+    # finalizada e a cobranca podera ser emitida manualmente depois.
+    emitir_cobranca({
+        "consulta_id": consulta["id"],
+        "paciente_id": consulta["paciente_id"],
+        "valor": consulta.get("valor_consulta"),
+        "data_emissao": date.today().isoformat(),
+        "status": "EMITIDA",
+    })
+
     return jsonify(consulta)
 
 
@@ -284,6 +381,11 @@ def solicitar_cancelamento(id):
     if consulta["estado"] != EstadoConsulta.AGENDADA:
         return jsonify({
             "erro": "Apenas consultas no estado AGENDADA podem ser canceladas"
+        }), 409
+
+    if _ja_passou(consulta["data_hora"]):
+        return jsonify({
+            "erro": "Nao e possivel solicitar cancelamento: o horario previsto ja passou"
         }), 409
 
     solicitacao = {

@@ -54,6 +54,7 @@ def inserir(nome, entidade, documento):
     registro = dict(documento)
     registro["id"] = proximo_id(entidade)
     _colecao(nome).insert_one(registro)
+    registro.pop("_id", None)  # insert_one injeta o ObjectId, que nao e serializavel
     return registro
 
 

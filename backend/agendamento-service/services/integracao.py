@@ -46,3 +46,19 @@ def obter_valor_vigente():
         return resposta.json().get("valor")
 
     return None
+
+
+def emitir_cobranca(cobranca):
+    # Chamada feita ao finalizar a consulta. Tolerante a falhas: se o faturamento
+    # estiver indisponivel, retorna None e a finalizacao da consulta prossegue.
+    try:
+        resposta = requests.post(
+            f"{FATURAMENTO_URL}/cobrancas", json=cobranca, timeout=TIMEOUT
+        )
+    except requests.exceptions.RequestException:
+        return None
+
+    if resposta.status_code in (200, 201):
+        return resposta.json()
+
+    return None

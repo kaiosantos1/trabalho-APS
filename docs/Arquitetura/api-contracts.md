@@ -15,9 +15,10 @@ Portas dos serviços:
 | Faturamento Service | 5002  | Implementado  |
 | Agendamento Service | 5003  | Implementado  |
 
-> Persistência: os três serviços armazenam os dados **em memória** nesta versão
-> (sem compartilhamento entre serviços). A persistência definitiva (MongoDB) está
-> prevista para evolução futura.
+> Persistência: cada serviço possui o **seu próprio banco MongoDB** (database per
+> service), sem compartilhamento entre serviços. As coleções recebem um campo `id`
+> sequencial (controlado pela coleção `counters`). Os serviços sobem em containers
+> Docker independentes via `docker-compose` (ver `docker/`).
 
 Cada serviço expõe também `GET /health` para verificação de disponibilidade.
 
@@ -176,6 +177,20 @@ Estados possíveis: `AGENDADA`, `EM_ANDAMENTO`, `FINALIZADA`, `CANCELADA`.
 Regras de estado aplicadas: só é possível reagendar/cancelar uma consulta
 `AGENDADA`; iniciar exige `AGENDADA`; finalizar exige `EM_ANDAMENTO`.
 
+Regras de negócio adicionais aplicadas no agendamento:
+
+- **Disponibilidade:** a data/hora deve cair dentro de uma escala vigente do médico
+  para o dia da semana correspondente (caso contrário, 409).
+- **Sem dupla marcação:** não é permitido agendar dois pacientes no mesmo médico e
+  horário (409).
+- **Janela temporal:** não é possível agendar/reagendar/solicitar cancelamento de um
+  horário que já passou (409).
+- **Valor congelado:** ao agendar, o `valor_consulta` recebe o valor vigente obtido do
+  Faturamento e permanece fixo na consulta.
+- **Cobrança automática:** ao finalizar (`/finalizar`), o Agendamento emite uma cobrança
+  no Faturamento (`POST /cobrancas`) com `consulta_id`, `paciente_id` e `valor`. Se o
+  Faturamento estiver indisponível, a consulta é finalizada mesmo assim.
+
 ## Solicitações de Cancelamento
 
 ```json
@@ -228,42 +243,46 @@ Responsável pela gestão financeira. **Implementado** em Flask com Blueprints.
 { "id": 1, "valor": 250.0, "data_vigencia": "2026-06-01" }
 ```
 
-| Método | Endpoint         | Descrição               |
-| ------ | ---------------- | ----------------------- |
-| GET    | /valores         | Listar valores          |
-| POST   | /valores         | Definir valor           |
-| GET    | /valores/vigente | Consultar valor vigente |
-| GET    | /valores/{id}    | Consultar valor por id  |
-| PUT    | /valores/{id}    | Atualizar valor         |
+| Método | Endpoint                | Descrição                          |
+| ------ | ----------------------- | ---------------------------------- |
+| GET    | /valores                | Listar valores                     |
+| POST   | /valores                | Definir valor                      |
+| GET    | /valores/vigente        | Consultar valor vigente            |
+| GET    | /valores/{id}           | Consultar valor por id             |
+| PUT    | /valores/{id}           | Atualizar valor                    |
 
-> `GET /valores/vigente` retorna o valor vigente (último cadastrado) e é
-> consumido pelo Agendamento no momento do agendamento.
+> `GET /valores/vigente` retorna o valor com a **maior `data_vigencia` que não
+> ultrapassa a data de referência** (vigente). Aceita `?data=YYYY-MM-DD` (padrão:
+> hoje). É consumido pelo Agendamento no momento do agendamento.
 
 ## Pagamentos
 
 ```json
-{ "id": 1, "data_pagamento": "2026-06-20", "status": "PAGO" }
+{ "id": 1, "consulta_id": 1, "paciente_id": 1, "valor": 250.0, "data_pagamento": "2026-06-20", "status": "PAGO" }
 ```
 
-| Método | Endpoint         | Descrição           |
-| ------ | ---------------- | ------------------- |
-| GET    | /pagamentos      | Listar pagamentos   |
-| POST   | /pagamentos      | Registrar pagamento |
-| GET    | /pagamentos/{id} | Consultar pagamento |
-| PUT    | /pagamentos/{id} | Atualizar pagamento |
+| Método | Endpoint         | Descrição                                              |
+| ------ | ---------------- | ------------------------------------------------------ |
+| GET    | /pagamentos      | Listar pagamentos (filtros: `paciente_id`, `consulta_id`) |
+| POST   | /pagamentos      | Registrar pagamento                                    |
+| GET    | /pagamentos/{id} | Consultar pagamento                                    |
+| PUT    | /pagamentos/{id} | Atualizar pagamento                                    |
 
 ## Cobranças
 
 ```json
-{ "id": 1, "valor": 250.0, "data_emissao": "2026-06-20", "status": "EMITIDA" }
+{ "id": 1, "consulta_id": 1, "paciente_id": 1, "valor": 250.0, "data_emissao": "2026-06-20", "status": "EMITIDA" }
 ```
 
-| Método | Endpoint        | Descrição          |
-| ------ | --------------- | ------------------ |
-| GET    | /cobrancas      | Listar cobranças   |
-| POST   | /cobrancas      | Emitir cobrança    |
-| GET    | /cobrancas/{id} | Consultar cobrança |
-| PUT    | /cobrancas/{id} | Atualizar cobrança |
+| Método | Endpoint        | Descrição                                            |
+| ------ | --------------- | ---------------------------------------------------- |
+| GET    | /cobrancas      | Listar cobranças (filtros: `paciente_id`, `consulta_id`) |
+| POST   | /cobrancas      | Emitir cobrança                                      |
+| GET    | /cobrancas/{id} | Consultar cobrança                                   |
+| PUT    | /cobrancas/{id} | Atualizar cobrança                                   |
+
+> O paciente consulta o próprio histórico financeiro via `GET /cobrancas?paciente_id={id}`
+> e `GET /pagamentos?paciente_id={id}`.
 
 ---
 
@@ -278,6 +297,7 @@ Agendamento Service (módulo `services/integracao.py`).
 | Agendamento | Cadastro    | GET /medicos/{id}           | Validar médico                  |
 | Agendamento | Cadastro    | GET /especialidades/{id}    | Validar especialidade           |
 | Agendamento | Faturamento | GET /valores/vigente        | Obter valor vigente da consulta |
+| Agendamento | Faturamento | POST /cobrancas             | Emitir cobrança ao finalizar    |
 
 As URLs dos serviços são configuráveis por variáveis de ambiente
 (`CADASTRO_URL`, `FATURAMENTO_URL`), o que permite execução local e em containers.
@@ -298,8 +318,8 @@ foi implementado conforme os requisitos:
 
 Itens ainda **não implementados** (previstos para evolução):
 
-- Persistência definitiva (MongoDB) — atualmente os dados são mantidos em memória;
 - API Gateway — modelado no diagrama de implantação, ainda não implementado;
-- Autenticação/autorização (RBAC) — modelado conceitualmente, sem implementação
-  técnica;
+- Autenticação/autorização (RBAC) no backend — os perfis (Diretor, Gerente,
+  Atendente, Médico, Paciente) estão implementados como áreas no frontend, mas o
+  backend ainda não valida tokens/permissões;
 - Versionamento de API, paginação e padronização completa de códigos de erro.

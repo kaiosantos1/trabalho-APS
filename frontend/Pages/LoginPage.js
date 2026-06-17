@@ -8,9 +8,19 @@ export async function renderLoginPage(container, context) {
 
     container.querySelector("#admin-access").addEventListener("click", () => {
         setStoredRole("administrador");
-        context.notify("success", "Acesso de administrador liberado.");
+        context.notify("success", "Acesso de administração liberado.");
         context.navigateTo("administrador");
     });
+
+    const botaoMedico = container.querySelector("#medico-access");
+
+    if (botaoMedico) {
+        botaoMedico.addEventListener("click", () => {
+            setStoredRole("medico");
+            context.notify("success", "Acesso de médico liberado.");
+            context.navigateTo("medico");
+        });
+    }
 
     const botaoUsuario = container.querySelector("#go-usuario");
 
