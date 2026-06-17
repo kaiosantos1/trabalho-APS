@@ -13,7 +13,9 @@ def _periodos_se_sobrepoem(inicio1, fim1, inicio2, fim2):
 
 
 def _horarios_se_sobrepoem(ini1, fim1, ini2, fim2):
-    
+    # "00:00" no fim representa meia-noite (fim do dia) -> normaliza para "24:00".
+    fim1 = "24:00" if fim1 == "00:00" else fim1
+    fim2 = "24:00" if fim2 == "00:00" else fim2
     return ini1 < fim2 and ini2 < fim1
 
 
