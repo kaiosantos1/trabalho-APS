@@ -1,6 +1,6 @@
 # Minimundo — Sistema de Gestão Clínica
 
-A clínica médica **Areas Health** está expandindo a sua atuação no Sudeste do Brasil e solicitou à empresa **JKLE** o desenvolvimento de um software para controlar os agendamentos e a realização das consultas. A clínica atende a várias especialidades (cardiologia, ortopedia, pediatria, entre outras). Para suportar esse crescimento operacional, o sistema de gestão clínica será organizado em domínios independentes, seguindo uma arquitetura baseada em microsserviços.
+A clínica médica **APS Health** está expandindo a sua atuação no Sudeste do Brasil e solicitou à empresa **JKLE** o desenvolvimento de um software para controlar os agendamentos e a realização das consultas. A clínica atende a várias especialidades (cardiologia, ortopedia, pediatria, entre outras). Para suportar esse crescimento operacional, o sistema de gestão clínica será organizado em domínios independentes, seguindo uma arquitetura baseada em microsserviços.
 
 ## Domínios do Sistema
 

@@ -1,4 +1,4 @@
-# API Contracts - Sistema de Gestão Clínica APS Health / Areas Health
+# API Contracts - Sistema de Gestão Clínica APS Health
 
 ## Visão Geral
 

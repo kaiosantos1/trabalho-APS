@@ -1,0 +1,125 @@
+version: "3.9"
+
+services:
+  cadastro-mongo:
+    image: mongo:7
+    container_name: cadastro-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - cadastro-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand({ ping: 1 })\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+  agendamento-mongo:
+    image: mongo:7
+    container_name: agendamento-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - agendamento-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand({ ping: 1 })\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+  faturamento-mongo:
+    image: mongo:7
+    container_name: faturamento-mongo
+    restart: unless-stopped
+    ports:
+      - "27019:27017"
+    volumes:
+      - faturamento-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand({ ping: 1 })\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+  cadastro-service:
+    build:
+      context: ../backend/cadastro-service
+    container_name: cadastro-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://cadastro-mongo:27017
+      MONGO_DB: aps_health_cadastro
+    ports:
+      - "5001:5001"
+    depends_on:
+      cadastro-mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5001/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+  agendamento-service:
+    build:
+      context: ../backend/agendamento-service
+    container_name: agendamento-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://agendamento-mongo:27017
+      MONGO_DB: aps_health_agendamento
+      CADASTRO_URL: http://cadastro-service:5001
+      FATURAMENTO_URL: http://faturamento-service:5002
+      SERVICOS_TIMEOUT: 3
+    ports:
+      - "5003:5003"
+    depends_on:
+      agendamento-mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5003/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+  faturamento-service:
+    build:
+      context: ../backend/faturamento_service
+    container_name: faturamento-service
+    restart: unless-stopped
+    environment:
+      MONGO_URI: mongodb://faturamento-mongo:27017
+      MONGO_DB: aps_health_faturamento
+    ports:
+      - "5002:5002"
+    depends_on:
+      faturamento-mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5002/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - aps-health-net
+
+volumes:
+  cadastro-mongo-data:
+  agendamento-mongo-data:
+  faturamento-mongo-data:
+
+networks:
+  aps-health-net:
+    driver: bridge

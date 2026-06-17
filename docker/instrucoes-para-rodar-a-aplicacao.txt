@@ -1,0 +1,40 @@
+PASSO A PASSO PARA RODAR A APLICACAO
+
+1. Requisitos
+- Docker instalado na maquina.
+- Docker Compose disponivel.
+- Opcionalmente, MongoDB Compass para acompanhar os bancos.
+
+2. Estrutura que sera iniciada
+- cadastro-service na porta 5001
+- faturamento-service na porta 5002
+- agendamento-service na porta 5003
+- cadastro-mongo na porta 27017
+- agendamento-mongo na porta 27018
+- faturamento-mongo na porta 27019
+
+3. Como subir tudo
+- Abra o terminal na pasta docker.
+- Execute:
+  docker compose up --build
+
+4. O que deve acontecer
+- Os tres containers de MongoDB sobem primeiro.
+- Os tres microsservicos sobem em seguida.
+- Cada servico aponta para o seu proprio banco.
+- O agendamento-service continua funcionando mesmo que o faturamento-service esteja indisponivel, seguindo a regra de degradacao graciosa.
+
+5. Como parar a aplicacao
+- No terminal, use Ctrl+C.
+- Se quiser remover os containers do compose, execute:
+  docker compose down
+
+6. Observacoes tecnicas
+- Se voce usar MongoDB externo, ajuste MONGO_URI e MONGO_DB em cada servico.
+- Se os bancos estiverem vazios, eles serao criados na primeira insercao.
+- Nao remova a colecao counters se quiser manter a contagem dos ids.
+
+7. Se o Docker nao estiver instalado
+- Instale o Docker Desktop.
+- Reinicie o computador se necessario.
+- Rode novamente o comando docker compose up --build dentro da pasta docker.

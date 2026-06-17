@@ -1,4 +1,4 @@
-# Documentação do Sistema - Areas Health
+# Documentação do Sistema - APS Health
 ---
 
 # Estrutura da Documentação
@@ -48,7 +48,7 @@ Diagrama estrutural das entidades, relacionamentos e organização dos microsser
 
 Inclui:
 
-* Diagrama de Classes do sistema Areas Health.
+* Diagrama de Classes do sistema APS Health.
 
 ---
 

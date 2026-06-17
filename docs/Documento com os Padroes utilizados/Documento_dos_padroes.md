@@ -1,6 +1,6 @@
 # Documento de Padrões de Software
 
-## Sistema de Gestão Clínica Areas Health
+## Sistema de Gestão Clínica APS Health
 
 **Versão:** 1.1
 **Data:** junho/2026
@@ -13,7 +13,7 @@
 
 # 1. Introdução
 
-Este documento descreve os padrões de software adotados no sistema **Areas Health**,
+Este documento descreve os padrões de software adotados no sistema **APS Health**,
 um sistema de gestão clínica baseado em arquitetura de microsserviços.
 
 Diferentemente da versão anterior — em que a maioria dos padrões estava apenas
@@ -253,7 +253,7 @@ ambiente completo com um único comando.
 
 # 11. Conclusão
 
-O projeto Areas Health evoluiu da fase de modelagem para uma implementação
+O projeto APS Health evoluiu da fase de modelagem para uma implementação
 funcional: três microsserviços independentes, comunicando-se via REST/JSON, com
 isolamento de dados por serviço e tolerância a falhas implementada (timeout e
 degradação graciosa).

@@ -4,7 +4,7 @@ from pymongo import MongoClient, ReturnDocument
 
 
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
-MONGO_DB = os.environ.get("MONGO_DB", "aps_health_agendamento")
+MONGO_DB = os.environ.get("MONGO_DB", "aps_health_faturamento")
 MAX_POOL_SIZE = int(os.environ.get("MONGO_MAX_POOL_SIZE", "20"))
 MIN_POOL_SIZE = int(os.environ.get("MONGO_MIN_POOL_SIZE", "0"))
 MAX_IDLE_TIME_MS = int(os.environ.get("MONGO_MAX_IDLE_TIME_MS", "300000"))
@@ -64,28 +64,9 @@ def atualizar(nome, identificador, atualizacoes):
         return None
 
     documento.pop("_id", None)
-    documento.update(atualizacoes)
+    for campo, valor in atualizacoes.items():
+        documento[campo] = valor
+
     _colecao(nome).replace_one({"id": identificador}, documento)
     documento.pop("_id", None)
     return documento
-
-
-def substituir(nome, identificador, documento):
-    identificador = int(identificador)
-    novo_documento = dict(documento)
-    novo_documento.pop("_id", None)
-    _colecao(nome).replace_one({"id": identificador}, novo_documento)
-    novo_documento.pop("_id", None)
-    return novo_documento
-
-
-def buscar_consulta(consulta_id):
-    return buscar("consultas", consulta_id)
-
-
-def buscar_escala(escala_id):
-    return buscar("escalas", escala_id)
-
-
-def buscar_solicitacao(solicitacao_id):
-    return buscar("solicitacoes", solicitacao_id)

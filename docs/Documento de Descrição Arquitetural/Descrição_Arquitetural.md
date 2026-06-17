@@ -1,8 +1,8 @@
-# Documento de Descrição Arquitetural — Sistema de Gestão Clínica Areas Health
+# Documento de Descrição Arquitetural — Sistema de Gestão Clínica APS Health
 
 ## 1. Introdução
 
-O presente documento descreve o problema abordado pelo sistema **Areas Health**, a solução proposta, suas principais preocupações arquiteturais (*concerns*) e os pontos de vista utilizados para tratá-las.
+O presente documento descreve o problema abordado pelo sistema **APS Health**, a solução proposta, suas principais preocupações arquiteturais (*concerns*) e os pontos de vista utilizados para tratá-las.
 
 ---
 
@@ -25,7 +25,7 @@ A execução manual desses processos pode gerar inconsistências, retrabalho, er
 
 ## 3. Sistema Proposto
 
-O **Areas Health** é um sistema de gestão clínica baseado em arquitetura de microsserviços.
+O **APS Health** é um sistema de gestão clínica baseado em arquitetura de microsserviços.
 
 Sua proposta é automatizar os processos operacionais e administrativos da clínica por meio da separação de responsabilidades em domínios especializados.
 
@@ -141,6 +141,6 @@ Endereça:
 
 ## 6. Conclusão
 
-A arquitetura proposta para o sistema Areas Health foi concebida para atender às necessidades de gestão clínica através de modularização baseada em microsserviços.
+A arquitetura proposta para o sistema APS Health foi concebida para atender às necessidades de gestão clínica através de modularização baseada em microsserviços.
 
 Os concerns identificados foram tratados por diferentes visões arquiteturais, permitindo melhor organização do sistema, separação de responsabilidades, segurança, escalabilidade e capacidade de evolução futura.

@@ -23,6 +23,7 @@ Plano para o front end integrado:
 -cadastro de especialidades
 --agendamento service--
 -Aprovar ou reprovar solicitações de cancelamento de agendamento
+-Resolver
 --faturamento service--
 -emitir fatura
 -cobrar consulta
@@ -35,6 +36,8 @@ Plano para o front end integrado:
 -editar consulta
 -remarcar consulta
 -Solicitar cancelamento de consulta
+
+---- MedicoPage: ----
 
 ---- Login page ----
 - Selecionar opção administrador - Já possui cadastro pré definido

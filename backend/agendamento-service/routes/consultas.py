@@ -54,7 +54,6 @@ def agendar_consulta():
     valor_consulta = obter_valor_vigente()
 
     nova_consulta = {
-        "id": repositorio.proximo_id("consulta"),
         "paciente_id": paciente_id,
         "medico_id": medico_id,
         "especialidade_id": especialidade_id,
@@ -68,7 +67,7 @@ def agendar_consulta():
         "exames_solicitados": [],
     }
 
-    repositorio.consultas.append(nova_consulta)
+    nova_consulta = repositorio.inserir("consultas", "consulta", nova_consulta)
     return jsonify(nova_consulta), 201
 
 
@@ -81,7 +80,7 @@ def listar_consultas():
     paciente_id = request.args.get("paciente_id", type=int)
     medico_id = request.args.get("medico_id", type=int)
 
-    resultado = repositorio.consultas
+    resultado = repositorio.listar("consultas")
     if paciente_id is not None:
         resultado = [c for c in resultado if c["paciente_id"] == paciente_id]
     if medico_id is not None:
@@ -118,7 +117,7 @@ def consultar_disponibilidade():
         return jsonify({"erro": "data invalida, use o formato YYYY-MM-DD"}), 400
 
     escalas_do_dia = [
-        e for e in repositorio.escalas
+        e for e in repositorio.listar("escalas")
         if e["medico_id"] == medico_id
         and e["dia_semana"] == dia_semana
         and e["data_inicio_vigencia"] <= data
@@ -126,7 +125,7 @@ def consultar_disponibilidade():
     ]
 
     horarios_ocupados = [
-        c["data_hora"] for c in repositorio.consultas
+        c["data_hora"] for c in repositorio.listar("consultas")
         if c["medico_id"] == medico_id
         and c["estado"] in (EstadoConsulta.AGENDADA, EstadoConsulta.EM_ANDAMENTO)
         and str(c["data_hora"]).startswith(data)
@@ -159,6 +158,7 @@ def reagendar_consulta(id):
 
     consulta["data_hora"] = dados.get("data_hora", consulta["data_hora"])
     consulta["medico_id"] = dados.get("medico_id", consulta["medico_id"])
+    consulta = repositorio.substituir("consultas", id, consulta)
     return jsonify(consulta)
 
 
@@ -180,6 +180,7 @@ def iniciar_consulta(id):
 
     consulta["estado"] = EstadoConsulta.EM_ANDAMENTO
     consulta["data_hora_inicio"] = dados.get("data_hora_inicio") or _agora()
+    consulta = repositorio.substituir("consultas", id, consulta)
     return jsonify(consulta)
 
 
@@ -200,6 +201,7 @@ def finalizar_consulta(id):
     )
     consulta["estado"] = EstadoConsulta.FINALIZADA
     consulta["data_hora_encerramento"] = dados.get("data_hora_encerramento") or _agora()
+    consulta = repositorio.substituir("consultas", id, consulta)
     return jsonify(consulta)
 
 
@@ -221,6 +223,7 @@ def prescrever_medicamento(id):
         "posologia": dados.get("posologia"),
     }
     consulta["prescricoes"].append(prescricao)
+    repositorio.substituir("consultas", id, consulta)
     return jsonify(prescricao), 201
 
 
@@ -243,6 +246,7 @@ def solicitar_exame(id):
         "data_realizacao": None,
     }
     consulta["exames_solicitados"].append(exame_solicitado)
+    repositorio.substituir("consultas", id, consulta)
     return jsonify(exame_solicitado), 201
 
 
@@ -263,6 +267,7 @@ def registrar_resultado_exame(id):
 
     exame["resultado"] = dados.get("resultado", exame["resultado"])
     exame["data_realizacao"] = dados.get("data_realizacao") or _agora()
+    repositorio.substituir("consultas", id, consulta)
     return jsonify(exame)
 
 
@@ -282,9 +287,8 @@ def solicitar_cancelamento(id):
         }), 409
 
     solicitacao = {
-        "id": repositorio.proximo_id("solicitacao"),
         "consulta_id": id,
         "status": "PENDENTE",
     }
-    repositorio.solicitacoes.append(solicitacao)
+    solicitacao = repositorio.inserir("solicitacoes", "solicitacao", solicitacao)
     return jsonify(solicitacao), 201

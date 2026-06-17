@@ -1,0 +1,234 @@
+ROTEIRO DE INTEGRACAO COM MONGODB
+Sistema de Gestao Clinica APS Health
+
+1. Contexto do projeto
+
+O sistema APS Health foi modelado como uma arquitetura de microsservicos com tres dominios principais:
+- cadastro-service
+- agendamento-service
+- faturamento-service
+
+A documentacao do projeto ja define os principios de:
+- separacao por dominio de negocio;
+- comunicacao entre servicos via REST/JSON;
+- tolerancia a falhas com timeout e degradacao graciosa;
+- database per service;
+- possibilidade de execucao em containers Docker independentes.
+
+No estado atual, os dados ainda estao em memoria. O proximo passo e substituir esse armazenamento temporario por persistencia em MongoDB, mantendo a independencia entre os servicos.
+
+2. Objetivo da integracao
+
+Implementar MongoDB de forma que:
+- cada microsservico tenha seu proprio container Docker independente;
+- cada microsservico tenha seu proprio banco de dados ou conjunto isolado de colecoes;
+- a indisponibilidade de um servico nao derrube os demais;
+- o agendamento-service continue operando parcialmente mesmo que o cadastro-service ou o faturamento-service estejam fora do ar, respeitando as regras de negocio ja documentadas;
+- a escalabilidade seja horizontal por servico, sem acoplamento de persistencia compartilhada.
+
+3. Decisao arquitetural recomendada
+
+A recomendacao mais aderente a documentacao do projeto e:
+- 1 container para cada microsservico;
+- 1 container MongoDB para cada microsservico;
+- 1 volume persistente para cada MongoDB;
+- 1 rede Docker compartilhada apenas para comunicacao entre servicos;
+- sem banco de dados compartilhado entre dominios.
+
+Essa abordagem reforca:
+- isolamento de falhas;
+- autonomia operacional;
+- evolucao independente;
+- facilidade de manutencao;
+- menor risco de efeito cascata.
+
+4. Organizacao sugerida por microsservico
+
+4.1 cadastro-service
+Responsabilidade:
+- pacientes;
+- medicos;
+- especialidades;
+- consultorios;
+- medicamentos;
+- exames.
+
+Persistencia sugerida:
+- banco MongoDB proprio, por exemplo cadastro_db;
+- colecoes separadas para cada entidade: pacientes, medicos, especialidades, consultorios, medicamentos e exames.
+
+Efeito esperado:
+- o servico continua atendendo consultas e cadastros mesmo que os outros estejam indisponiveis;
+- o agendamento-service depende dele apenas para validacao de existencia e consistencia.
+
+4.2 agendamento-service
+Responsabilidade:
+- consultas;
+- escalas medicas;
+- solicitacoes de cancelamento;
+- estados da consulta;
+- prescricoes e exames solicitados associados a consulta.
+
+Persistencia sugerida:
+- banco MongoDB proprio, por exemplo agendamento_db;
+- colecoes para consultas, escalas e solicitacoes_cancelamento.
+
+Efeito esperado:
+- consultas sao mantidas localmente no proprio dominio;
+- a indisponibilidade do cadastro-service afeta apenas validacoes externas, nao o armazenamento interno das consultas;
+- a indisponibilidade do faturamento-service nao impede o agendamento, desde que seja mantida a regra de degradacao graciosa prevista na documentacao.
+
+4.3 faturamento-service
+Responsabilidade:
+- valores vigentes;
+- cobrancas;
+- pagamentos.
+
+Persistencia sugerida:
+- banco MongoDB proprio, por exemplo faturamento_db;
+- colecoes para valores, cobrancas e pagamentos.
+
+Efeito esperado:
+- o servico pode ser consultado e atualizado independentemente dos demais;
+- quando estiver indisponivel, o agendamento-service deve seguir com comportamento de fallback, sem bloquear o fluxo principal.
+
+5. Estrutura Docker sugerida
+
+A estrutura ideal do ambiente deve conter, no minimo:
+- cadastro-service container;
+- agendamento-service container;
+- faturamento-service container;
+- cadastro-mongo container;
+- agendamento-mongo container;
+- faturamento-mongo container;
+- opcionalmente um reverse proxy ou API Gateway em etapa futura.
+
+Regras de montagem:
+- cada servico se conecta somente ao seu MongoDB respectivo;
+- os containers devem compartilhar uma rede interna Docker para resolver nomes DNS entre si;
+- a aplicacao nao deve depender de localhost dentro do container, e sim do nome do servico na rede Docker.
+
+6. Roteiro tecnico de implementacao
+
+Etapa 1 - Preparar a configuracao por ambiente
+- Criar variaveis de ambiente para cada servico.
+- Definir, para cada microsservico, a URL do MongoDB, nome do banco e nome da collection quando necessario.
+- Exemplo de configuracao esperada:
+  - MONGO_URI;
+  - MONGO_DB;
+  - CADASTRO_URL;
+  - FATURAMENTO_URL;
+  - AGENDAMENTO_URL.
+
+Etapa 2 - Inserir camada de persistencia
+- Substituir as listas em memoria por acesso ao MongoDB.
+- Centralizar a persistencia em um modulo de repositorio por servico.
+- Manter a logica de negocio separada da logica de acesso ao banco.
+
+Etapa 3 - Definir modelos de documento
+- Paciente, medico, especialidade, consultorio, medicamento e exame como documentos do cadastro-service.
+- Consulta, escala e solicitacao de cancelamento como documentos do agendamento-service.
+- Valor, cobranca e pagamento como documentos do faturamento-service.
+
+Etapa 4 - Ajustar os contratos REST
+- Manter os endpoints ja documentados.
+- Garantir que os payloads continuem compativeis com o frontend e com a comunicacao entre microsservicos.
+- Preservar os campos de identificacao ja previstos nos contratos da API.
+
+Etapa 5 - Reforcar tolerancia a falhas
+- Manter timeout nas chamadas entre servicos.
+- Aplicar fallback quando o faturamento-service estiver indisponivel, permitindo que o agendamento prossiga com valor nulo ou valor pendente de recuperacao, conforme regra definida pelo negocio.
+- Quando o cadastro-service estiver indisponivel, responder com erro controlado apenas na operacao que depende da validacao externa.
+- Evitar bloqueio em cascata entre os servicos.
+
+Etapa 6 - Montar containers independentes
+- Criar um Dockerfile para cada microsservico.
+- Incluir dependencias Python em cada imagem.
+- Ajustar o comando de inicializacao para expor a porta correta de cada servico.
+- Definir healthcheck para cada container.
+
+Etapa 7 - Orquestrar com Docker Compose
+- Criar um docker-compose com todos os servicos e seus bancos.
+- Declarar volumes persistentes para os MongoDBs.
+- Configurar restart policy para evitar parada desnecessaria.
+- Garantir que o compose suba o ambiente completo com um unico comando.
+
+Etapa 8 - Validar independencia funcional
+- Testar cadastro-service sozinho.
+- Testar faturamento-service sozinho.
+- Testar agendamento-service com:
+  - cadastro-service fora do ar;
+  - faturamento-service fora do ar;
+  - ambos os servicos disponiveis.
+- Verificar se o sistema se comporta conforme a tolerancia a falhas prevista na documentacao.
+
+7. Consideracoes sobre escalabilidade
+
+A separacao em containers e bancos proprios permite escalar cada dominio de forma independente.
+
+Exemplos:
+- se o cadastro-service receber muito mais acesso, ele pode ser replicado sem escalar os demais;
+- se o agendamento-service for o mais critico em horarios de pico, ele pode receber mais replicas;
+- o faturamento-service pode ser escalado separadamente em eventos de fechamento financeiro.
+
+Vantagens:
+- alocacao mais eficiente de recursos;
+- menor impacto em picos de carga;
+- manutencao por dominio;
+- isolamento de gargalos.
+
+8. Consideracoes sobre tolerancia a falhas
+
+A arquitetura proposta deve evitar dependencia absoluta entre os servicos.
+
+Diretriz principal:
+- o sistema nao deve parar inteiro quando um microsservico estiver fora do ar.
+
+Aplicacao pratica:
+- falha no faturamento-service nao impede o agendamento de consultas;
+- falha no cadastro-service afeta apenas validacoes de cadastro e consulta de dados cadastrais;
+- falha em um banco MongoDB nao deve comprometer os outros bancos;
+- a indisponibilidade deve ser tratada com erro controlado, timeout e fallback quando aplicavel.
+
+9. Consideracoes sobre comunicacao entre microsservicos
+
+A comunicacao deve continuar via REST/JSON, como ja previsto na documentacao.
+
+Fluxos principais:
+- agendamento-service consulta cadastro-service para validar paciente, medico e especialidade;
+- agendamento-service consulta faturamento-service para obter valor vigente;
+- o frontend continua consumindo cada servico pelas URLs apropriadas.
+
+Boas praticas sugeridas:
+- usar timeouts curtos e previsiveis;
+- tratar erro de rede separadamente de erro de negocio;
+- manter contratos estaveis;
+- nao permitir acesso direto ao banco de um servico por outro servico.
+
+10. Sequencia recomendada de execucao do projeto
+
+1. Definir os schemas e colecoes do MongoDB por servico.
+2. Criar a camada de conexao com MongoDB em cada microsservico.
+3. Migrar o cadastro-service para persistencia real.
+4. Migrar o faturamento-service para persistencia real.
+5. Migrar o agendamento-service para persistencia real.
+6. Ajustar a integracao entre servicos para continuar resiliente.
+7. Criar os Dockerfiles individuais.
+8. Criar o docker-compose com redes, volumes e healthchecks.
+9. Testar indisponibilidade parcial de cada servico.
+10. Documentar os endpoints, variaveis de ambiente e comandos de execucao.
+
+11. Resultado esperado
+
+Ao final dessa integracao, o projeto devera ter:
+- tres microsservicos independentes em containers separados;
+- tres bancos MongoDB independentes;
+- persistencia duravel por dominio;
+- comunicacao REST entre servicos;
+- tolerancia a falhas funcional;
+- capacidade de evoluir e escalar por dominio;
+- funcionamento parcial mesmo com indisponibilidade de um ou mais servicos.
+
+12. Observacao final
+
+O modelo recomendado respeita a arquitetura ja documentada no projeto APS Health e evolui o sistema do armazenamento em memoria para um cenario realista de producao com MongoDB, mantendo o principio central de que cada dominio deve permanecer util mesmo quando outros dominios estiverem fora do ar.

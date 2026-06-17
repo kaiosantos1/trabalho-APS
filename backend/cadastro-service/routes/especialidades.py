@@ -1,39 +1,31 @@
 from flask import Blueprint, jsonify, request
 
+import repositorio
+
 especialidades_bp = Blueprint("especialidades", __name__)
-
-especialidades = []
-proximo_id_especialidade = 1
-
 
 @especialidades_bp.route("/especialidades", methods=["GET"])
 def listar_especialidades():
-    return jsonify(especialidades)
+    return jsonify(repositorio.listar("especialidades"))
 
 
 @especialidades_bp.route("/especialidades", methods=["POST"])
 def criar_especialidade():
-    global proximo_id_especialidade
-
     dados = request.get_json()
 
-    nova_especialidade = {
-        "id": proximo_id_especialidade,
+    nova_especialidade = repositorio.inserir("especialidades", "especialidade", {
         "nome": dados.get("nome"),
         "descricao": dados.get("descricao")
-    }
-
-    especialidades.append(nova_especialidade)
-    proximo_id_especialidade += 1
+    })
 
     return jsonify(nova_especialidade), 201
 
 
 @especialidades_bp.route("/especialidades/<int:id>", methods=["GET"])
 def buscar_especialidade(id):
-    for especialidade in especialidades:
-        if especialidade["id"] == id:
-            return jsonify(especialidade)
+    especialidade = repositorio.buscar("especialidades", id)
+    if especialidade is not None:
+        return jsonify(especialidade)
 
     return jsonify({"erro": "Especialidade não encontrada"}), 404
 
@@ -42,10 +34,12 @@ def buscar_especialidade(id):
 def atualizar_especialidade(id):
     dados = request.get_json()
 
-    for especialidade in especialidades:
-        if especialidade["id"] == id:
-            especialidade["nome"] = dados.get("nome", especialidade["nome"])
-            especialidade["descricao"] = dados.get("descricao", especialidade["descricao"])
-            return jsonify(especialidade)
+    especialidade = repositorio.buscar("especialidades", id)
+    if especialidade is not None:
+        especialidade = repositorio.atualizar("especialidades", id, {
+            "nome": dados.get("nome", especialidade["nome"]),
+            "descricao": dados.get("descricao", especialidade["descricao"])
+        })
+        return jsonify(especialidade)
 
     return jsonify({"erro": "Especialidade não encontrada"}), 404

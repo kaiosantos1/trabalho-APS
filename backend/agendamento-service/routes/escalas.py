@@ -36,7 +36,7 @@ def _ha_conflito(escala, nova, mesmo_campo):
 @escalas_bp.route("/escalas", methods=["GET"])
 def listar_escalas():
     medico_id = request.args.get("medico_id", type=int)
-    resultado = repositorio.escalas
+    resultado = repositorio.listar("escalas")
     if medico_id is not None:
         resultado = [e for e in resultado if e["medico_id"] == medico_id]
     return jsonify(resultado)
@@ -74,18 +74,17 @@ def criar_escala():
                     "dia_semana, hora_inicial e hora_final sao obrigatorios"
         }), 400
 
-    if any(_ha_conflito(e, nova, "medico_id") for e in repositorio.escalas):
+    if any(_ha_conflito(e, nova, "medico_id") for e in repositorio.listar("escalas")):
         return jsonify({
             "erro": "Conflito de horario: o medico ja possui escala nesse periodo"
         }), 409
 
-    if any(_ha_conflito(e, nova, "consultorio_id") for e in repositorio.escalas):
+    if any(_ha_conflito(e, nova, "consultorio_id") for e in repositorio.listar("escalas")):
         return jsonify({
             "erro": "Consultorio ja alocado para outro medico nesse horario"
         }), 409
 
-    nova["id"] = repositorio.proximo_id("escala")
-    repositorio.escalas.append(nova)
+    nova = repositorio.inserir("escalas", "escala", nova)
     return jsonify(nova), 201
 
 
@@ -103,7 +102,7 @@ def atualizar_escala(id):
     ):
         atualizada[campo] = dados.get(campo, escala[campo])
 
-    outras = [e for e in repositorio.escalas if e["id"] != id]
+    outras = [e for e in repositorio.listar("escalas") if e["id"] != id]
     if any(_ha_conflito(e, atualizada, "medico_id") for e in outras):
         return jsonify({
             "erro": "Conflito de horario: o medico ja possui escala nesse periodo"
@@ -113,5 +112,5 @@ def atualizar_escala(id):
             "erro": "Consultorio ja alocado para outro medico nesse horario"
         }), 409
 
-    escala.update(atualizada)
+    escala = repositorio.substituir("escalas", id, atualizada)
     return jsonify(escala)

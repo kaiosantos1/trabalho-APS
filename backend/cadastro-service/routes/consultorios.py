@@ -1,40 +1,32 @@
 from flask import Blueprint, jsonify, request
 
+import repositorio
+
 consultorios_bp = Blueprint("consultorios", __name__)
-
-consultorios = []
-proximo_id_consultorio = 1
-
 
 @consultorios_bp.route("/consultorios", methods=["GET"])
 def listar_consultorios():
-    return jsonify(consultorios)
+    return jsonify(repositorio.listar("consultorios"))
 
 
 @consultorios_bp.route("/consultorios", methods=["POST"])
 def criar_consultorio():
-    global proximo_id_consultorio
-
     dados = request.get_json()
 
-    novo_consultorio = {
-        "id": proximo_id_consultorio,
+    novo_consultorio = repositorio.inserir("consultorios", "consultorio", {
         "numero": dados.get("numero"),
         "bloco": dados.get("bloco"),
         "tamanho": dados.get("tamanho")
-    }
-
-    consultorios.append(novo_consultorio)
-    proximo_id_consultorio += 1
+    })
 
     return jsonify(novo_consultorio), 201
 
 
 @consultorios_bp.route("/consultorios/<int:id>", methods=["GET"])
 def buscar_consultorio(id):
-    for consultorio in consultorios:
-        if consultorio["id"] == id:
-            return jsonify(consultorio)
+    consultorio = repositorio.buscar("consultorios", id)
+    if consultorio is not None:
+        return jsonify(consultorio)
 
     return jsonify({"erro": "Consultório não encontrado"}), 404
 
@@ -43,11 +35,13 @@ def buscar_consultorio(id):
 def atualizar_consultorio(id):
     dados = request.get_json()
 
-    for consultorio in consultorios:
-        if consultorio["id"] == id:
-            consultorio["numero"] = dados.get("numero", consultorio["numero"])
-            consultorio["bloco"] = dados.get("bloco", consultorio["bloco"])
-            consultorio["tamanho"] = dados.get("tamanho", consultorio["tamanho"])
-            return jsonify(consultorio)
+    consultorio = repositorio.buscar("consultorios", id)
+    if consultorio is not None:
+        consultorio = repositorio.atualizar("consultorios", id, {
+            "numero": dados.get("numero", consultorio["numero"]),
+            "bloco": dados.get("bloco", consultorio["bloco"]),
+            "tamanho": dados.get("tamanho", consultorio["tamanho"])
+        })
+        return jsonify(consultorio)
 
     return jsonify({"erro": "Consultório não encontrado"}), 404
