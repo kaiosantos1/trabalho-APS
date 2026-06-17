@@ -114,3 +114,11 @@ def atualizar_escala(id):
 
     escala = repositorio.substituir("escalas", id, atualizada)
     return jsonify(escala)
+
+
+@escalas_bp.route("/escalas/<int:id>", methods=["DELETE"])
+def remover_escala(id):
+    if repositorio.remover("escalas", id):
+        return jsonify({"mensagem": "Escala removida"})
+
+    return jsonify({"erro": "Escala não encontrada"}), 404

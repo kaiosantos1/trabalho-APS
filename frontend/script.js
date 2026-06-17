@@ -4,6 +4,9 @@ import { renderCadastroPage } from "./Pages/CadastroPage.js";
 import { renderLoginPage } from "./Pages/LoginPage.js";
 import { renderUsuarioPage } from "./Pages/UsuarioPage.js";
 import { renderMedicoPage } from "./Pages/MedicoPage.js";
+import { renderDiretorPage } from "./Pages/DiretorPage.js";
+import { renderGerentePage } from "./Pages/GerentePage.js";
+import { renderAtendentePage } from "./Pages/AtendentePage.js";
 import { getStoredMedico, getStoredPatient, getStoredRole } from "./Pages/shared.js";
 
 const app = document.getElementById("app");
@@ -16,6 +19,9 @@ const renderers = {
     cadastro: renderCadastroPage,
     usuario: renderUsuarioPage,
     medico: renderMedicoPage,
+    diretor: renderDiretorPage,
+    gerente: renderGerentePage,
+    atendente: renderAtendentePage,
     administrador: renderAdministradorPage
 };
 
@@ -42,8 +48,16 @@ function resolveUserLabel() {
     const patient = getStoredPatient();
     const medico = getStoredMedico();
 
-    if (role === "administrador") {
-        return "Administração (Diretor / Gerente / Atendente)";
+    if (role === "diretor") {
+        return "Diretor";
+    }
+
+    if (role === "gerente") {
+        return "Gerente";
+    }
+
+    if (role === "atendente") {
+        return "Atendente";
     }
 
     if (role === "medico") {

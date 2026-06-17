@@ -43,3 +43,11 @@ def atualizar_especialidade(id):
         return jsonify(especialidade)
 
     return jsonify({"erro": "Especialidade não encontrada"}), 404
+
+
+@especialidades_bp.route("/especialidades/<int:id>", methods=["DELETE"])
+def remover_especialidade(id):
+    if repositorio.remover("especialidades", id):
+        return jsonify({"mensagem": "Especialidade removida"})
+
+    return jsonify({"erro": "Especialidade não encontrada"}), 404

@@ -80,6 +80,11 @@ def substituir(nome, identificador, documento):
     return novo_documento
 
 
+def remover(nome, identificador):
+    resultado = _colecao(nome).delete_one({"id": int(identificador)})
+    return resultado.deleted_count > 0
+
+
 def buscar_consulta(consulta_id):
     return buscar("consultas", consulta_id)
 
