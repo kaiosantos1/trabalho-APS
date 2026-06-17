@@ -55,6 +55,8 @@ services:
     environment:
       MONGO_URI: mongodb://cadastro-mongo:27017
       MONGO_DB: aps_health_cadastro
+      JWT_SECRET: aps-health-segredo-jwt
+      INTERNAL_TOKEN: aps-health-token-interno
     ports:
       - "5001:5001"
     depends_on:
@@ -79,6 +81,8 @@ services:
       CADASTRO_URL: http://cadastro-service:5001
       FATURAMENTO_URL: http://faturamento-service:5002
       SERVICOS_TIMEOUT: 3
+      JWT_SECRET: aps-health-segredo-jwt
+      INTERNAL_TOKEN: aps-health-token-interno
     ports:
       - "5003:5003"
     depends_on:
@@ -100,6 +104,8 @@ services:
     environment:
       MONGO_URI: mongodb://faturamento-mongo:27017
       MONGO_DB: aps_health_faturamento
+      JWT_SECRET: aps-health-segredo-jwt
+      INTERNAL_TOKEN: aps-health-token-interno
     ports:
       - "5002:5002"
     depends_on:

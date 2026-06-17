@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 pacientes_bp = Blueprint("pacientes", __name__)
 
@@ -11,6 +12,7 @@ def listar_pacientes():
 
 
 @pacientes_bp.route("/pacientes", methods=["POST"])
+@requer_perfil("atendente")
 def criar_paciente():
     dados = request.get_json(silent=True) or {}
 
@@ -37,6 +39,7 @@ def buscar_paciente(id):
 
 
 @pacientes_bp.route("/pacientes/<int:id>", methods=["PUT"])
+@requer_perfil("atendente", "paciente")
 def atualizar_paciente(id):
     dados = request.get_json(silent=True) or {}
 
@@ -57,6 +60,7 @@ def atualizar_paciente(id):
 
 
 @pacientes_bp.route("/pacientes/<int:id>", methods=["DELETE"])
+@requer_perfil("atendente")
 def remover_paciente(id):
     if repositorio.remover("pacientes", id):
         return jsonify({"mensagem": "Paciente removido"})

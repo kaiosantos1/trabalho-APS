@@ -50,6 +50,16 @@ export function cadastroPageTemplate({ pacienteAtual }) {
                         <input id="pacienteEmail" type="email" placeholder="email@exemplo.com">
                     </label>
 
+                    <label class="field">
+                        <span>Usuário de acesso</span>
+                        <input id="pacienteUsuario" type="text" placeholder="nome de usuário" autocomplete="username" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Senha</span>
+                        <input id="pacienteSenha" type="password" placeholder="crie uma senha" autocomplete="new-password" required>
+                    </label>
+
                     <div class="form-actions full-width">
                         <button class="button primary" type="submit">Salvar cadastro</button>
                         <button class="button ghost" type="button" id="voltar-login">Voltar ao login</button>

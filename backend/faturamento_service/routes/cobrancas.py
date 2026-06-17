@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 cobrancas_bp = Blueprint("cobrancas", __name__)
 
@@ -22,6 +23,7 @@ def listar_cobrancas():
 
 
 @cobrancas_bp.route("/cobrancas", methods=["POST"])
+@requer_perfil("diretor")
 def criar_cobranca():
     dados = request.get_json(silent=True) or {}
 
@@ -46,6 +48,7 @@ def buscar_cobranca(id):
 
 
 @cobrancas_bp.route("/cobrancas/<int:id>", methods=["PUT"])
+@requer_perfil("diretor")
 def atualizar_cobranca(id):
     dados = request.get_json(silent=True) or {}
 

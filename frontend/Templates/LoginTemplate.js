@@ -4,55 +4,64 @@ export function loginPageTemplate({ pacienteCadastrado }) {
             <div>
                 <p class="eyebrow">Login</p>
                 <h2>Sistema APS Health</h2>
-                <p class="page-lead">Escolha o seu perfil de acesso para continuar.</p>
+                <p class="page-lead">Selecione o tipo de acesso, informe seu usuário e senha para entrar.</p>
             </div>
-            <div class="hero-badge">5 Perfis • Cadastro • Agendamento • Faturamento</div>
+            <div class="hero-badge">Controle de acesso por perfil</div>
         </section>
 
-        <section class="panel-grid">
-            <article class="card callout-card">
-                <span class="card-kicker">Administração</span>
-                <h3>Diretor</h3>
-                <p>Gestão de políticas clínicas: especialidades, consultórios e valores de consulta.</p>
-                <div class="card-actions">
-                    <button class="button primary" id="diretor-access">Entrar como diretor</button>
+        <section class="panel-grid two-columns">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Acesso</span>
+                        <h3>Entrar no sistema</h3>
+                    </div>
                 </div>
+
+                <form id="login-form" class="form-grid">
+                    <label class="field full-width">
+                        <span>Tipo de acesso</span>
+                        <select id="loginPerfil" required>
+                            <option value="diretor">Diretor</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="atendente">Atendente</option>
+                            <option value="medico">Médico</option>
+                            <option value="paciente">Paciente</option>
+                        </select>
+                    </label>
+
+                    <label class="field full-width">
+                        <span>Usuário</span>
+                        <input id="loginUsuario" type="text" placeholder="nome de usuário" autocomplete="username" required>
+                    </label>
+
+                    <label class="field full-width">
+                        <span>Senha</span>
+                        <input id="loginSenha" type="password" placeholder="senha" autocomplete="current-password" required>
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Entrar</button>
+                    </div>
+                </form>
+
+                <p class="muted" style="margin-top: 12px;">
+                    Ainda não é paciente?
+                    <button class="button ghost" id="go-cadastro" type="button">Criar cadastro</button>
+                </p>
             </article>
 
-            <article class="card callout-card">
-                <span class="card-kicker">Administração</span>
-                <h3>Gerente</h3>
-                <p>Gestão operacional: médicos, escalas e análise de cancelamentos.</p>
-                <div class="card-actions">
-                    <button class="button primary" id="gerente-access">Entrar como gerente</button>
-                </div>
-            </article>
-
-            <article class="card callout-card">
-                <span class="card-kicker">Administração</span>
-                <h3>Atendente</h3>
-                <p>Operações clínicas: pacientes, medicamentos, exames e pagamentos.</p>
-                <div class="card-actions">
-                    <button class="button primary" id="atendente-access">Entrar como atendente</button>
-                </div>
-            </article>
-
-            <article class="card callout-card">
-                <span class="card-kicker">Clínico</span>
-                <h3>Médico</h3>
-                <p>Atendimento clínico: consultas, prescrições e exames.</p>
-                <div class="card-actions">
-                    <button class="button primary" id="medico-access">Entrar como médico</button>
-                </div>
-            </article>
-
-            <article class="card callout-card accent-card">
-                <span class="card-kicker">Usuário</span>
-                <h3>${pacienteCadastrado ? "Continuar agendamentos" : "Paciente"}</h3>
-                <p>${pacienteCadastrado ? `Bem-vindo, ${pacienteCadastrado.nome}. Acesse sua área de consultas.` : "Agende, reagende e acompanhe suas consultas."}</p>
-                <div class="card-actions">
-                    ${pacienteCadastrado ? '<button class="button primary" id="go-usuario">Acessar minha área</button>' : '<button class="button primary" id="go-cadastro">Fazer cadastro</button>'}
-                </div>
+            <article class="card info-card">
+                <span class="card-kicker">Credenciais de teste</span>
+                <h3>Usuários padrão</h3>
+                <p class="muted">Use estas credenciais administrativas (criadas automaticamente):</p>
+                <ul class="list">
+                    <li class="list-item"><div><strong>Diretor</strong><span>diretor / diretor123</span></div></li>
+                    <li class="list-item"><div><strong>Gerente</strong><span>gerente / gerente123</span></div></li>
+                    <li class="list-item"><div><strong>Atendente</strong><span>atendente / atendente123</span></div></li>
+                    <li class="list-item"><div><strong>Médico</strong><span>medico / medico123</span></div></li>
+                </ul>
+                <p class="muted">${pacienteCadastrado ? `Último paciente neste navegador: ${pacienteCadastrado.nome}.` : "Pacientes criam o próprio usuário no cadastro."}</p>
             </article>
         </section>
 

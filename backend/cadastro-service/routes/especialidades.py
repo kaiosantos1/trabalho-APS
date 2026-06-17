@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 especialidades_bp = Blueprint("especialidades", __name__)
 
@@ -10,6 +11,7 @@ def listar_especialidades():
 
 
 @especialidades_bp.route("/especialidades", methods=["POST"])
+@requer_perfil("diretor")
 def criar_especialidade():
     dados = request.get_json()
 
@@ -31,6 +33,7 @@ def buscar_especialidade(id):
 
 
 @especialidades_bp.route("/especialidades/<int:id>", methods=["PUT"])
+@requer_perfil("diretor")
 def atualizar_especialidade(id):
     dados = request.get_json()
 
@@ -46,6 +49,7 @@ def atualizar_especialidade(id):
 
 
 @especialidades_bp.route("/especialidades/<int:id>", methods=["DELETE"])
+@requer_perfil("diretor")
 def remover_especialidade(id):
     if repositorio.remover("especialidades", id):
         return jsonify({"mensagem": "Especialidade removida"})

@@ -8,8 +8,51 @@ export const STORAGE_KEYS = {
     role: "areashealth.role",
     patient: "areashealth.patient",
     patientRegistry: "areashealth.patientRegistry",
-    medico: "areashealth.medico"
+    medico: "areashealth.medico",
+    token: "areashealth.token",
+    auth: "areashealth.auth"
 };
+
+// Mapeia o perfil retornado no login para a rota da area correspondente.
+export const PERFIL_ROTA = {
+    diretor: "diretor",
+    gerente: "gerente",
+    atendente: "atendente",
+    medico: "medico",
+    paciente: "usuario"
+};
+
+export function getStoredToken() {
+    return localStorage.getItem(STORAGE_KEYS.token) || "";
+}
+
+export function setStoredToken(token) {
+    localStorage.setItem(STORAGE_KEYS.token, token || "");
+}
+
+export function getStoredAuth() {
+    const rawValue = localStorage.getItem(STORAGE_KEYS.auth);
+    if (!rawValue) {
+        return null;
+    }
+    try {
+        return JSON.parse(rawValue);
+    } catch {
+        return null;
+    }
+}
+
+export function setStoredAuth(auth) {
+    localStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(auth || {}));
+}
+
+export function clearAuth() {
+    Object.values(STORAGE_KEYS).forEach(chave => {
+        if (chave !== STORAGE_KEYS.patientRegistry) {
+            localStorage.removeItem(chave);
+        }
+    });
+}
 
 export function getStoredRole() {
     return localStorage.getItem(STORAGE_KEYS.role) || "";
@@ -148,10 +191,12 @@ export function formatCurrency(value) {
 
 export async function requestJson(service, path, options = {}) {
     const { method = "GET", body, headers = {} } = options;
+    const token = getStoredToken();
     const response = await fetch(`${SERVICE_URLS[service]}${path}`, {
         method,
         headers: {
             ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers
         },
         body: body !== undefined ? JSON.stringify(body) : undefined
@@ -165,6 +210,22 @@ export async function requestJson(service, path, options = {}) {
     }
 
     return data;
+}
+
+// Autentica no cadastro-service. Lanca erro (ex.: "Usuario ou senha invalidos").
+export async function login(perfil, username, senha) {
+    return requestJson("cadastro", "/auth/login", {
+        method: "POST",
+        body: { perfil, username, senha }
+    });
+}
+
+// Auto-cadastro de paciente (cria paciente + usuario e ja retorna o token).
+export async function registrarPaciente(payload) {
+    return requestJson("cadastro", "/auth/registro", {
+        method: "POST",
+        body: payload
+    });
 }
 
 export function getTodayDate() {

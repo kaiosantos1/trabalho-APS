@@ -4,6 +4,7 @@ import requests
 CADASTRO_URL = os.environ.get("CADASTRO_URL", "http://localhost:5001")
 FATURAMENTO_URL = os.environ.get("FATURAMENTO_URL", "http://localhost:5002")
 TIMEOUT = float(os.environ.get("SERVICOS_TIMEOUT", "3"))
+INTERNAL_TOKEN = os.environ.get("INTERNAL_TOKEN", "aps-health-internal")
 
 
 class ServicoIndisponivel(Exception):
@@ -53,7 +54,10 @@ def emitir_cobranca(cobranca):
     # estiver indisponivel, retorna None e a finalizacao da consulta prossegue.
     try:
         resposta = requests.post(
-            f"{FATURAMENTO_URL}/cobrancas", json=cobranca, timeout=TIMEOUT
+            f"{FATURAMENTO_URL}/cobrancas",
+            json=cobranca,
+            headers={"X-Internal-Token": INTERNAL_TOKEN},
+            timeout=TIMEOUT,
         )
     except requests.exceptions.RequestException:
         return None

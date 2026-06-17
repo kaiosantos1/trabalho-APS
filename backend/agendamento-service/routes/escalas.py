@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 import repositorio
+from seguranca import requer_perfil
 
 escalas_bp = Blueprint("escalas", __name__)
 
@@ -53,6 +54,7 @@ def buscar_escala(id):
 
 
 @escalas_bp.route("/escalas", methods=["POST"])
+@requer_perfil("gerente")
 def criar_escala():
     dados = request.get_json(silent=True) or {}
 
@@ -91,6 +93,7 @@ def criar_escala():
 
 
 @escalas_bp.route("/escalas/<int:id>", methods=["PUT"])
+@requer_perfil("gerente")
 def atualizar_escala(id):
     dados = request.get_json(silent=True) or {}
     escala = repositorio.buscar_escala(id)
@@ -119,6 +122,7 @@ def atualizar_escala(id):
 
 
 @escalas_bp.route("/escalas/<int:id>", methods=["DELETE"])
+@requer_perfil("gerente")
 def remover_escala(id):
     if repositorio.remover("escalas", id):
         return jsonify({"mensagem": "Escala removida"})

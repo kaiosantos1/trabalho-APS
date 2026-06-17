@@ -50,6 +50,10 @@ def buscar(nome, identificador):
     return _colecao(nome).find_one({"id": int(identificador)}, {"_id": 0})
 
 
+def buscar_por(nome, filtro):
+    return _colecao(nome).find_one(filtro, {"_id": 0})
+
+
 def inserir(nome, entidade, documento):
     registro = dict(documento)
     registro["id"] = proximo_id(entidade)
