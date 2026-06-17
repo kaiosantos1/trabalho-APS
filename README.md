@@ -139,16 +139,16 @@ Atualmente o projeto encontra-se na fase de:
 - [x] API Contracts
 
 ### Desenvolvimento
-- [ ] Estruturação dos microsserviços
-- [ ] Implementação das entidades/modelos
-- [ ] Implementação das regras de negócio
-- [ ] Implementação das APIs REST
-- [ ] Comunicação entre microsserviços
-- [ ] Persistência de dados (MongoDB)
-- [ ] Controle de acesso por perfis (RBAC)
+- [x] Estruturação dos microsserviços
+- [x] Implementação das entidades/modelos
+- [x] Implementação das regras de negócio (disponibilidade, janela temporal, valor congelado, cobrança automática)
+- [x] Implementação das APIs REST
+- [x] Comunicação entre microsserviços (validação + valor vigente + emissão de cobrança)
+- [x] Persistência de dados (MongoDB — um banco por serviço)
+- [ ] Controle de acesso por perfis (RBAC) — perfis implementados no frontend; autenticação/autorização no backend prevista para evolução
 
 ### Infraestrutura
-- [ ] Containerização com Docker
-- [ ] Configuração do ambiente (Docker Compose)
-- [ ] Testes integrados
+- [x] Containerização com Docker
+- [x] Configuração do ambiente (Docker Compose)
+- [x] Testes integrados (fluxo completo + cenários de tolerância a falhas validados)
 - [ ] Deploy

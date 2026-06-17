@@ -162,6 +162,16 @@ export function administradorPageTemplate({ hoje }) {
 
                 <form id="cobranca-form" class="form-grid compact-grid sub-section">
                     <label class="field">
+                        <span>ID da consulta</span>
+                        <input id="cobrancaConsulta" type="number" min="1" placeholder="opcional">
+                    </label>
+
+                    <label class="field">
+                        <span>ID do paciente</span>
+                        <input id="cobrancaPaciente" type="number" min="1" placeholder="opcional">
+                    </label>
+
+                    <label class="field">
                         <span>Valor da cobrança</span>
                         <input id="cobrancaValor" type="number" min="0" step="0.01" placeholder="250.00" required>
                     </label>
@@ -182,6 +192,21 @@ export function administradorPageTemplate({ hoje }) {
                 </form>
 
                 <form id="pagamento-form" class="form-grid compact-grid sub-section">
+                    <label class="field">
+                        <span>ID da consulta</span>
+                        <input id="pagamentoConsulta" type="number" min="1" placeholder="opcional">
+                    </label>
+
+                    <label class="field">
+                        <span>ID do paciente</span>
+                        <input id="pagamentoPaciente" type="number" min="1" placeholder="opcional">
+                    </label>
+
+                    <label class="field">
+                        <span>Valor pago</span>
+                        <input id="pagamentoValor" type="number" min="0" step="0.01" placeholder="250.00">
+                    </label>
+
                     <label class="field">
                         <span>Data do pagamento</span>
                         <input id="pagamentoData" type="date" value="${hoje}" required>
@@ -212,6 +237,172 @@ export function administradorPageTemplate({ hoje }) {
                         <h4>Pagamentos</h4>
                         <ul id="listaPagamentos" class="list"></ul>
                     </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel-grid two-columns">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Cadastro Service</span>
+                        <h3>Consultórios</h3>
+                    </div>
+                    <div class="pill">Diretor</div>
+                </div>
+
+                <form id="consultorio-form" class="form-grid compact-grid">
+                    <label class="field">
+                        <span>Número</span>
+                        <input id="consultorioNumero" type="text" placeholder="101" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Bloco</span>
+                        <input id="consultorioBloco" type="text" placeholder="A" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Tamanho</span>
+                        <input id="consultorioTamanho" type="text" placeholder="Médio">
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Cadastrar consultório</button>
+                    </div>
+                </form>
+
+                <div class="list-panel">
+                    <h4>Consultórios cadastrados</h4>
+                    <ul id="listaConsultorios" class="list"></ul>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Agendamento Service</span>
+                        <h3>Escalas médicas</h3>
+                    </div>
+                    <div class="pill">Gerente</div>
+                </div>
+
+                <form id="escala-form" class="form-grid compact-grid">
+                    <label class="field">
+                        <span>Médico</span>
+                        <select id="escalaMedico" required></select>
+                    </label>
+
+                    <label class="field">
+                        <span>Consultório</span>
+                        <select id="escalaConsultorio" required></select>
+                    </label>
+
+                    <label class="field">
+                        <span>Dia da semana</span>
+                        <select id="escalaDiaSemana" required>
+                            <option value="Segunda">Segunda</option>
+                            <option value="Terca">Terça</option>
+                            <option value="Quarta">Quarta</option>
+                            <option value="Quinta">Quinta</option>
+                            <option value="Sexta">Sexta</option>
+                            <option value="Sabado">Sábado</option>
+                            <option value="Domingo">Domingo</option>
+                        </select>
+                    </label>
+
+                    <label class="field">
+                        <span>Início da vigência</span>
+                        <input id="escalaInicioVigencia" type="date" value="${hoje}" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Fim da vigência (opcional)</span>
+                        <input id="escalaFimVigencia" type="date">
+                    </label>
+
+                    <label class="field">
+                        <span>Hora inicial</span>
+                        <input id="escalaHoraInicial" type="time" required>
+                    </label>
+
+                    <label class="field">
+                        <span>Hora final</span>
+                        <input id="escalaHoraFinal" type="time" required>
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Criar escala</button>
+                    </div>
+                </form>
+
+                <div class="list-panel">
+                    <h4>Escalas cadastradas</h4>
+                    <ul id="listaEscalas" class="list"></ul>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel-grid two-columns">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Cadastro Service</span>
+                        <h3>Medicamentos</h3>
+                    </div>
+                    <div class="pill">Médico</div>
+                </div>
+
+                <form id="medicamento-form" class="form-grid compact-grid">
+                    <label class="field">
+                        <span>Nome</span>
+                        <input id="medicamentoNome" type="text" placeholder="Dipirona" required>
+                    </label>
+
+                    <label class="field full-width">
+                        <span>Indicação</span>
+                        <input id="medicamentoIndicacao" type="text" placeholder="Dor e febre">
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Cadastrar medicamento</button>
+                    </div>
+                </form>
+
+                <div class="list-panel">
+                    <h4>Medicamentos cadastrados</h4>
+                    <ul id="listaMedicamentos" class="list"></ul>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Cadastro Service</span>
+                        <h3>Exames</h3>
+                    </div>
+                    <div class="pill">Médico</div>
+                </div>
+
+                <form id="exame-cadastro-form" class="form-grid compact-grid">
+                    <label class="field">
+                        <span>Nome</span>
+                        <input id="exameNome" type="text" placeholder="Hemograma" required>
+                    </label>
+
+                    <label class="field full-width">
+                        <span>Indicação</span>
+                        <input id="exameIndicacao" type="text" placeholder="Avaliação geral">
+                    </label>
+
+                    <div class="form-actions full-width">
+                        <button class="button primary" type="submit">Cadastrar exame</button>
+                    </div>
+                </form>
+
+                <div class="list-panel">
+                    <h4>Exames cadastrados</h4>
+                    <ul id="listaExames" class="list"></ul>
                 </div>
             </article>
         </section>

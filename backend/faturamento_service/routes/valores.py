@@ -1,8 +1,24 @@
+from datetime import date
+
 from flask import Blueprint, jsonify, request
 
 import repositorio
 
 valores_bp = Blueprint("valores", __name__)
+
+
+def _valor_vigente_em(data_referencia):
+    # Vigente = valor com a maior data_vigencia que ainda nao ultrapassou a data
+    # de referencia. Mantem o valor associado a consulta estavel mesmo que a tabela
+    # de precos mude no futuro (regra do minimundo).
+    candidatos = [
+        v for v in repositorio.listar("valores")
+        if v.get("data_vigencia") and v["data_vigencia"] <= data_referencia
+    ]
+    if not candidatos:
+        return None
+    return max(candidatos, key=lambda v: v["data_vigencia"])
+
 
 @valores_bp.route("/valores", methods=["GET"])
 def listar_valores():
@@ -11,7 +27,7 @@ def listar_valores():
 
 @valores_bp.route("/valores", methods=["POST"])
 def criar_valor():
-    dados = request.get_json()
+    dados = request.get_json(silent=True) or {}
 
     novo_valor = repositorio.inserir("valores", "valor", {
         "valor": dados.get("valor"),
@@ -23,11 +39,13 @@ def criar_valor():
 
 @valores_bp.route("/valores/vigente", methods=["GET"])
 def obter_valor_vigente():
-    valores = repositorio.listar("valores")
-    if not valores:
-        return jsonify({"erro": "Nenhum valor cadastrado"}), 404
+    data_referencia = request.args.get("data") or date.today().isoformat()
+    vigente = _valor_vigente_em(data_referencia)
 
-    return jsonify(valores[-1])
+    if vigente is None:
+        return jsonify({"erro": "Nenhum valor vigente para a data informada"}), 404
+
+    return jsonify(vigente)
 
 
 @valores_bp.route("/valores/<int:id>", methods=["GET"])
@@ -41,7 +59,7 @@ def buscar_valor(id):
 
 @valores_bp.route("/valores/<int:id>", methods=["PUT"])
 def atualizar_valor(id):
-    dados = request.get_json()
+    dados = request.get_json(silent=True) or {}
 
     valor = repositorio.buscar("valores", id)
     if valor is not None:
