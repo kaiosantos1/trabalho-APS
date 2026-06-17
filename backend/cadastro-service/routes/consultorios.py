@@ -45,3 +45,11 @@ def atualizar_consultorio(id):
         return jsonify(consultorio)
 
     return jsonify({"erro": "Consultório não encontrado"}), 404
+
+
+@consultorios_bp.route("/consultorios/<int:id>", methods=["DELETE"])
+def remover_consultorio(id):
+    if repositorio.remover("consultorios", id):
+        return jsonify({"mensagem": "Consultório removido"})
+
+    return jsonify({"erro": "Consultório não encontrado"}), 404

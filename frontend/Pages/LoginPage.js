@@ -6,21 +6,29 @@ export async function renderLoginPage(container, context) {
 
     container.innerHTML = loginPageTemplate({ pacienteCadastrado });
 
-    container.querySelector("#admin-access").addEventListener("click", () => {
-        setStoredRole("administrador");
-        context.notify("success", "Acesso de administração liberado.");
-        context.navigateTo("administrador");
+    container.querySelector("#diretor-access").addEventListener("click", () => {
+        setStoredRole("diretor");
+        context.notify("success", "Acesso de diretor liberado.");
+        context.navigateTo("diretor");
     });
 
-    const botaoMedico = container.querySelector("#medico-access");
+    container.querySelector("#gerente-access").addEventListener("click", () => {
+        setStoredRole("gerente");
+        context.notify("success", "Acesso de gerente liberado.");
+        context.navigateTo("gerente");
+    });
 
-    if (botaoMedico) {
-        botaoMedico.addEventListener("click", () => {
-            setStoredRole("medico");
-            context.notify("success", "Acesso de médico liberado.");
-            context.navigateTo("medico");
-        });
-    }
+    container.querySelector("#atendente-access").addEventListener("click", () => {
+        setStoredRole("atendente");
+        context.notify("success", "Acesso de atendente liberado.");
+        context.navigateTo("atendente");
+    });
+
+    container.querySelector("#medico-access").addEventListener("click", () => {
+        setStoredRole("medico");
+        context.notify("success", "Acesso de médico liberado.");
+        context.navigateTo("medico");
+    });
 
     const botaoUsuario = container.querySelector("#go-usuario");
 

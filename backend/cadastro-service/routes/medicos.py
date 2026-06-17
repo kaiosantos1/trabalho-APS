@@ -59,3 +59,11 @@ def atualizar_medico(id):
         return jsonify(medico)
 
     return jsonify({"erro": "Médico não encontrado"}), 404
+
+
+@medicos_bp.route("/medicos/<int:id>", methods=["DELETE"])
+def remover_medico(id):
+    if repositorio.remover("medicos", id):
+        return jsonify({"mensagem": "Médico removido"})
+
+    return jsonify({"erro": "Médico não encontrado"}), 404

@@ -38,6 +38,17 @@ def _ja_passou(data_hora):
         return False
 
 
+def _hora_dentro_intervalo(hora, inicio, fim):
+    # Compara horas no formato "HH:MM". Trata "00:00" como fim do dia (24:00) e
+    # escalas que cruzam a meia-noite (ex.: 22:00 ate 02:00).
+    if fim == "00:00":
+        fim = "24:00"
+    if inicio <= fim:
+        return inicio <= hora < fim
+    # Escala que vira o dia: disponivel se for depois do inicio ou antes do fim.
+    return hora >= inicio or hora < fim
+
+
 def _medico_disponivel(medico_id, data_hora):
     # Verifica se o horario solicitado cai dentro de alguma escala vigente do medico
     # naquele dia da semana (regra de disponibilidade do minimundo).
@@ -56,7 +67,7 @@ def _medico_disponivel(medico_id, data_hora):
             continue
         if escala["data_fim_vigencia"] is not None and data_part > escala["data_fim_vigencia"]:
             continue
-        if escala["hora_inicial"] <= hora < escala["hora_final"]:
+        if _hora_dentro_intervalo(hora, escala["hora_inicial"], escala["hora_final"]):
             return True
 
     return False

@@ -71,3 +71,8 @@ def atualizar(nome, identificador, atualizacoes):
     _colecao(nome).replace_one({"id": identificador}, documento)
     documento.pop("_id", None)
     return documento
+
+
+def remover(nome, identificador):
+    resultado = _colecao(nome).delete_one({"id": int(identificador)})
+    return resultado.deleted_count > 0

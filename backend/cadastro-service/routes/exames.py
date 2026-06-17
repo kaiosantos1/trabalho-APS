@@ -43,3 +43,11 @@ def atualizar_exame(id):
         return jsonify(exame)
 
     return jsonify({"erro": "Exame não encontrado"}), 404
+
+
+@exames_bp.route("/exames/<int:id>", methods=["DELETE"])
+def remover_exame(id):
+    if repositorio.remover("exames", id):
+        return jsonify({"mensagem": "Exame removido"})
+
+    return jsonify({"erro": "Exame não encontrado"}), 404

@@ -138,6 +138,34 @@ export function usuarioPageTemplate({ paciente }) {
             </article>
         </section>
 
+        <section class="panel-grid two-columns">
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Histórico</span>
+                        <h3>Minhas prescrições</h3>
+                    </div>
+                </div>
+
+                <div class="list-panel">
+                    <ul id="minhasPrescricoes" class="list"></ul>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-kicker">Histórico</span>
+                        <h3>Meus exames solicitados</h3>
+                    </div>
+                </div>
+
+                <div class="list-panel">
+                    <ul id="meusExames" class="list"></ul>
+                </div>
+            </article>
+        </section>
+
         <section class="panel-grid user-actions-grid">
             <article class="card schedule-card">
                 <div class="card-header">

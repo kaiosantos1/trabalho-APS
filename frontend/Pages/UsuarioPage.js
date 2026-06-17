@@ -39,10 +39,35 @@ async function carregarCatalogos(container) {
     const medicoReagendarSelect = container.querySelector("#reagendarMedico");
     const disponibilidadeSelect = container.querySelector("#dispMedico");
 
+    const medicosMap = new Map(medicos.map(m => [m.id, m]));
+    const especialidadesMap = new Map(especialidades.map(e => [e.id, e]));
+
     medicoSelect.innerHTML = renderSelectOptions(medicos, "Selecione o médico");
     medicoReagendarSelect.innerHTML = renderSelectOptions(medicos, "Manter médico atual");
     especialidadeSelect.innerHTML = renderSelectOptions(especialidades, "Selecione a especialidade");
     disponibilidadeSelect.innerHTML = renderSelectOptions(medicos, "Selecione o médico");
+
+    // Auto-preencher especialidade quando médico é selecionado
+    medicoSelect.addEventListener("change", () => {
+        const medicoId = Number(medicoSelect.value);
+        if (medicoId && medicosMap.has(medicoId)) {
+            const medico = medicosMap.get(medicoId);
+            if (medico.especialidades_ids && medico.especialidades_ids.length > 0) {
+                especialidadeSelect.value = String(medico.especialidades_ids[0]);
+            }
+        }
+    });
+
+    // Filtrar médicos pela especialidade selecionada
+    especialidadeSelect.addEventListener("change", () => {
+        const especialidadeId = Number(especialidadeSelect.value);
+        if (especialidadeId) {
+            const medicosComEsp = medicos.filter(m => m.especialidades_ids && m.especialidades_ids.includes(especialidadeId));
+            medicoSelect.innerHTML = renderSelectOptions(medicosComEsp, "Selecione o médico com essa especialidade");
+        } else {
+            medicoSelect.innerHTML = renderSelectOptions(medicos, "Selecione o médico");
+        }
+    });
 
     return {
         medicos,
@@ -54,10 +79,14 @@ async function carregarCatalogos(container) {
 
 async function carregarConsultas(container, pacienteId, medicoMap, especialidadeMap) {
     const listaElement = container.querySelector("#listaConsultas");
+    const prescricoesElement = container.querySelector("#minhasPrescricoes");
+    const examesElement = container.querySelector("#meusExames");
 
     try {
         const consultas = await requestJson("agendamento", `/consultas?paciente_id=${pacienteId}`);
         renderConsultas(listaElement, consultas, medicoMap, especialidadeMap);
+        renderPrescricoes(prescricoesElement, consultas);
+        renderExameSolicitados(examesElement, consultas);
     } catch (error) {
         listaElement.innerHTML = `<li class="empty-state error-state">${error.message}</li>`;
     }
@@ -108,6 +137,60 @@ function renderDisponibilidade(listaElement, dados) {
     `).join("") + (ocupados.length
         ? `<li class="list-item"><div class="muted">Horários já ocupados: ${ocupados.map(formatDateTime).join(", ")}</div></li>`
         : "");
+}
+
+function renderPrescricoes(listaElement, consultas) {
+    const prescricoes = [];
+    consultas.forEach(consulta => {
+        if (consulta.prescricoes && consulta.prescricoes.length) {
+            consulta.prescricoes.forEach(presc => {
+                prescricoes.push({
+                    ...presc,
+                    consulta_id: consulta.id,
+                    data_hora: consulta.data_hora
+                });
+            });
+        }
+    });
+
+    if (!prescricoes.length) {
+        listaElement.innerHTML = '<li class="empty-state">Nenhuma prescrição registrada.</li>';
+        return;
+    }
+
+    listaElement.innerHTML = prescricoes.map(presc => `
+        <li class="list-item">
+            <div><strong>Medicamento ${presc.medicamento_id}</strong><span>Consulta ${presc.consulta_id}</span></div>
+            <div class="muted">Dose: ${presc.dose || "-"} • Posologia: ${presc.posologia || "-"}</div>
+        </li>
+    `).join("");
+}
+
+function renderExameSolicitados(listaElement, consultas) {
+    const exames = [];
+    consultas.forEach(consulta => {
+        if (consulta.exames_solicitados && consulta.exames_solicitados.length) {
+            consulta.exames_solicitados.forEach(exame => {
+                exames.push({
+                    ...exame,
+                    consulta_id: consulta.id,
+                    data_hora: consulta.data_hora
+                });
+            });
+        }
+    });
+
+    if (!exames.length) {
+        listaElement.innerHTML = '<li class="empty-state">Nenhum exame solicitado.</li>';
+        return;
+    }
+
+    listaElement.innerHTML = exames.map(exame => `
+        <li class="list-item">
+            <div><strong>Exame ${exame.exame_id}</strong><span>Consulta ${exame.consulta_id}</span></div>
+            <div class="muted">Resultado: ${exame.resultado || "Aguardando"} • Data: ${exame.data_realizacao || "-"}</div>
+        </li>
+    `).join("");
 }
 
 export async function renderUsuarioPage(container, context) {
