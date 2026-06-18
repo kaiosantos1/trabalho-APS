@@ -77,15 +77,14 @@ Perfis previstos:
 
 ---
 
-## Tecnologias Previstas
+## Tecnologias Utilizadas
 
-Tecnologias planejadas para implementação futura:
-
-* Microsserviços
-* APIs REST
-* JSON
-* Docker
-* Banco de dados independente por serviço
+* Microsserviços (Flask)
+* APIs REST com mensagens em JSON
+* Autenticação JWT e controle de acesso por perfil (RBAC)
+* MongoDB — um banco independente por serviço
+* Docker e Docker Compose
+* Frontend em JavaScript (servido em container Nginx)
 
 ---
 
@@ -121,9 +120,9 @@ Tecnologias planejadas para implementação futura:
 
 ## Status do Projeto
 
-**Em desenvolvimento**
-
-Atualmente o projeto encontra-se na fase de:
+**Implementação funcional** — modelagem, documentação e desenvolvimento dos três
+microsserviços concluídos; aplicação executável via Docker Compose (frontend +
+backend + MongoDB). Itens em aberto: API Gateway e deploy em produção.
 
 ### Modelagem e Documentação
 - [x] Levantamento de requisitos

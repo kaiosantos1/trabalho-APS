@@ -24,6 +24,41 @@ Cada serviço expõe também `GET /health` para verificação de disponibilidade
 
 ---
 
+# 0. Autenticação e Controle de Acesso (RBAC)
+
+A autenticação é feita no **Cadastro Service** e devolve um **token JWT**. As
+operações de **escrita** (POST/PUT/DELETE) exigem o header
+`Authorization: Bearer <token>` e são restritas por perfil; as **leituras**
+(GET) ficam abertas. As chamadas internas entre serviços usam o header
+`X-Internal-Token` (ex.: o Agendamento emitindo cobrança no Faturamento).
+
+Perfis: `diretor`, `gerente`, `atendente`, `medico`, `paciente`.
+
+| Método | Endpoint       | Descrição                                                        |
+| ------ | -------------- | ---------------------------------------------------------------- |
+| POST   | /auth/login    | Autentica (body: `perfil`, `username`, `senha`); retorna `token` + dados |
+| POST   | /auth/registro | Auto-cadastro de paciente (cria paciente + usuário) e já retorna `token` |
+
+Login com credenciais erradas retorna `401`; perfil sem permissão para a
+operação retorna `403`; ausência de token em operação protegida retorna `401`.
+
+Permissões de **escrita** por perfil:
+
+| Recurso                                              | Perfis com escrita                    |
+| ---------------------------------------------------- | ------------------------------------- |
+| Especialidades, Consultórios, Valores, Cobranças     | Diretor                               |
+| Médicos, Escalas, Aprovar/Rejeitar cancelamento      | Gerente                               |
+| Pacientes, Pagamentos                                | Atendente                             |
+| Medicamentos, Exames                                 | Atendente e Médico                    |
+| Iniciar/Finalizar/Prescrições/Exames da consulta     | Médico                                |
+| Agendar / Reagendar / Solicitar cancelamento         | Paciente, Atendente                   |
+
+> Além de POST/PUT, **todas as entidades de cadastro** (pacientes, médicos,
+> especialidades, consultórios, medicamentos, exames) e as **escalas** expõem
+> `DELETE /{entidade}/{id}`, sujeito às mesmas permissões de perfil acima.
+
+---
+
 # 1. Cadastro Service (porta 5001)
 
 Responsável pelos dados cadastrais do sistema. **Implementado** em Flask com
@@ -316,10 +351,13 @@ foi implementado conforme os requisitos:
 
 # 5. Observações
 
+Itens **implementados** recentemente:
+
+- Autenticação por usuário/senha com **token JWT** e **autorização por perfil
+  (RBAC)** nas operações de escrita dos três serviços (ver seção 0);
+- Endpoints `DELETE` para as entidades de cadastro e para as escalas.
+
 Itens ainda **não implementados** (previstos para evolução):
 
 - API Gateway — modelado no diagrama de implantação, ainda não implementado;
-- Autenticação/autorização (RBAC) no backend — os perfis (Diretor, Gerente,
-  Atendente, Médico, Paciente) estão implementados como áreas no frontend, mas o
-  backend ainda não valida tokens/permissões;
 - Versionamento de API, paginação e padronização completa de códigos de erro.

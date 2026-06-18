@@ -42,16 +42,17 @@ responsável por um domínio de negócio e executável de forma isolada.
 **Por que foi utilizado:** separação dos domínios, menor acoplamento, evolução e
 implantação independentes de cada serviço.
 
-## 2.2. Database per Service — Parcialmente implementado
+## 2.2. Database per Service — Implementado
 
 **Onde foi aplicado:** persistência de cada microsserviço.
 
 **Descrição:** cada microsserviço gerencia exclusivamente seus próprios dados, sem
-compartilhamento direto entre domínios. Atualmente os dados são mantidos **em
-memória** em cada serviço, garantindo o isolamento lógico previsto pelo padrão.
+compartilhamento direto entre domínios. Cada serviço possui o **seu próprio banco
+MongoDB** (em container Docker independente, com volume próprio), acessado por um
+módulo de repositório dedicado.
 
-**Situação:** o isolamento por serviço já está implementado; a **persistência
-definitiva em banco de dados (MongoDB) é planejada** para a evolução do projeto.
+**Situação:** implementado — três bancos MongoDB independentes
+(`aps_health_cadastro`, `aps_health_agendamento`, `aps_health_faturamento`).
 
 **Por que foi utilizado:** isolamento dos dados, independência entre domínios e
 redução de acoplamento.
@@ -159,9 +160,10 @@ não implementados (apenas o Timeout e a degradação graciosa foram aplicados).
 
 # 6. Padrões de Segurança
 
-## 6.1. Controle de Acesso por Perfis (RBAC conceitual) — Modelado
+## 6.1. Controle de Acesso por Perfis (RBAC) — Implementado
 
-**Onde foi aplicado:** regras de negócio e modelagem.
+**Onde foi aplicado:** autenticação no Cadastro Service e autorização nas
+operações de escrita dos três serviços.
 
 **Descrição:** o sistema define perfis (Paciente, Atendente, Médico, Gerente,
 Diretor), cada um com responsabilidades específicas.
@@ -174,8 +176,10 @@ Diretor), cada um com responsabilidades específicas.
 | Gerente   | Gestão de médicos, escalas e aprovação de cancelamentos |
 | Diretor   | Gestão de especialidades, consultórios e valores        |
 
-**Situação:** o modelo de perfis está definido, mas a **camada técnica de
-autenticação/autorização ainda não foi implementada (Planejado)**.
+**Situação:** implementado — login com **token JWT** (usuário/senha com hash) e
+autorização por perfil (decorator `requer_perfil`) nas operações de escrita
+(POST/PUT/DELETE). As leituras (GET) ficam abertas; chamadas internas entre
+serviços usam um token de serviço (`X-Internal-Token`).
 
 ---
 
@@ -204,16 +208,17 @@ na lista `exames_solicitados` de cada consulta.
 
 # 8. Padrões de Implantação
 
-## 8.1. Containerização com Docker — Planejado
+## 8.1. Containerização com Docker — Implementado
 
-**Descrição:** o diagrama de implantação modela cada serviço em um container
-Docker independente, com seu próprio banco. **Ainda não implementado** — em
-preparação pela equipe.
+**Descrição:** cada serviço (e o frontend) roda em um container Docker
+independente, e cada microsserviço tem o seu próprio container MongoDB com volume
+persistente. Há um `Dockerfile` por serviço.
 
-## 8.2. Orquestração com Docker Compose — Planejado
+## 8.2. Orquestração com Docker Compose — Implementado
 
-**Descrição:** orquestração dos três serviços em rede, prevista para subir o
-ambiente completo com um único comando.
+**Descrição:** o `docker-compose.yml` sobe o ambiente completo (frontend, três
+serviços e três bancos MongoDB) em uma rede interna, com healthchecks e ordem de
+inicialização, com um único comando.
 
 ---
 
@@ -232,21 +237,21 @@ ambiente completo com um único comando.
 | Padrão                              | Categoria     | Situação                          |
 | ----------------------------------- | ------------- | --------------------------------- |
 | Arquitetura de Microsserviços       | Arquitetural  | Implementado                      |
-| Database per Service                | Arquitetural  | Isolamento implementado; BD planejado |
+| Database per Service                | Arquitetural  | Implementado (MongoDB por serviço) |
 | Modularização por Blueprints        | Organização   | Implementado                      |
 | Separação de Responsabilidades      | Organização   | Implementado                      |
-| Repositório em memória              | Organização   | Estrutura inicial                 |
+| Repositório (MongoDB)               | Organização   | Implementado                      |
 | API REST                            | Comunicação   | Implementado                      |
 | Comunicação entre Microsserviços    | Comunicação   | Implementado                      |
 | API Gateway                         | Comunicação   | Modelado (Planejado)              |
 | Timeout                             | Resiliência   | Implementado                      |
 | Degradação Graciosa (Fallback)      | Resiliência   | Implementado                      |
 | Circuit Breaker / Retry             | Resiliência   | Futuro                            |
-| RBAC (conceitual)                   | Segurança     | Modelado                          |
+| RBAC (JWT + perfis)                 | Segurança     | Implementado                      |
 | Enumeração de Estados               | Modelagem     | Implementado em código            |
 | Classe Associativa                  | Modelagem     | Modelado / refletido em código    |
-| Containerização com Docker          | Implantação   | Planejado                         |
-| Docker Compose                      | Implantação   | Planejado                         |
+| Containerização com Docker          | Implantação   | Implementado                      |
+| Docker Compose                      | Implantação   | Implementado                      |
 | DTO                                 | Dados         | Futuro                            |
 
 ---

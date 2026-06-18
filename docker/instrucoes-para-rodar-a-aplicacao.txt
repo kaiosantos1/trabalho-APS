@@ -60,6 +60,11 @@ Seguranca / controle de acesso:
    - "--build" reconstroi as imagens (use sempre que o codigo mudar).
    - "-d" sobe em segundo plano (modo "detached").
 
+   Esse unico comando sobe TUDO: o frontend (porta 8080), os 3 servicos
+   e os 3 bancos MongoDB. Nao e preciso servir o frontend a parte.
+   Obs.: ao alterar o codigo do frontend, refaca so a imagem dele com
+   "docker compose up -d --build frontend" e atualize a pagina (Ctrl+F5).
+
 3) Acompanhe ate todos ficarem prontos:
 
      docker compose ps
@@ -186,4 +191,5 @@ docker compose stop cadastro-service faturamento-service
 # sobra só o agendamento (e os mongos) de pé
 
 RELIGAR SERVIÇOS
+docker compose start cadastro-service faturamento-service
 docker compose start cadastro-service faturamento-service
