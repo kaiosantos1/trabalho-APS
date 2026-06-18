@@ -54,7 +54,8 @@ Seguranca / controle de acesso:
 1) Abra o terminal na pasta "docker" do projeto.
 2) Execute:
 
-     docker compose up --build -d
+    1º) docker compose up --build -d
+2º) na pasta do frontend : python -m http.server 8000	
 
    - "--build" reconstroi as imagens (use sempre que o codigo mudar).
    - "-d" sobe em segundo plano (modo "detached").
@@ -190,4 +191,5 @@ docker compose stop cadastro-service faturamento-service
 # sobra só o agendamento (e os mongos) de pé
 
 RELIGAR SERVIÇOS
+docker compose start cadastro-service faturamento-service
 docker compose start cadastro-service faturamento-service
