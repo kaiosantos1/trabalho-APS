@@ -82,6 +82,10 @@ Relacionada às funcionalidades oferecidas pelo sistema e aos atores envolvidos.
 
 Foi representada por meio dos diagramas de casos de uso e diagramas de atividades.
 
+<img width="707" height="729" alt="image" src="https://github.com/user-attachments/assets/0d167f41-9137-4990-9af1-377a90fcce30" />
+[Diagrama de Casos de Uso - Administração e Cadastros.pdf](https://github.com/user-attachments/files/29074584/Diagrama.de.Casos.de.Uso.-.Administracao.e.Cadastros.pdf)
+
+
 Essa visão atende preocupações ligadas a:
 
 * fluxo operacional;
