@@ -120,6 +120,9 @@ Endereça:
 Relacionada à infraestrutura do sistema.
 
 Representada pelo diagrama de implantação.
+<img width="920" height="568" alt="image" src="https://github.com/user-attachments/assets/405e6bf0-c48f-4e80-801c-3e5da7e8a41c" />
+[Diagrama de Implantação.pdf](https://github.com/user-attachments/files/29074954/Diagrama.de.Implantacao.pdf)
+
 
 Endereça:
 
