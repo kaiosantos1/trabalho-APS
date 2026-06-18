@@ -38,7 +38,7 @@ backend/cadastro-service
     └── exames.py
 ```
 
-Os dados encontram-se temporariamente armazenados em memória para permitir validação dos contratos REST e integração inicial entre os serviços.
+Os dados são persistidos em **MongoDB** — cada serviço possui o seu próprio banco (database per service), executado em container Docker independente. O acesso ao banco é centralizado em um módulo de repositório por serviço.
 
 ---
 
