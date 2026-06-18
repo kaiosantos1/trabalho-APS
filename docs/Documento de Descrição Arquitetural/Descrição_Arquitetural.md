@@ -85,6 +85,17 @@ Foi representada por meio dos diagramas de casos de uso e diagramas de atividade
 <img width="707" height="729" alt="image" src="https://github.com/user-attachments/assets/0d167f41-9137-4990-9af1-377a90fcce30" />
 [Diagrama de Casos de Uso - Administração e Cadastros.pdf](https://github.com/user-attachments/files/29074584/Diagrama.de.Casos.de.Uso.-.Administracao.e.Cadastros.pdf)
 
+<img width="591" height="782" alt="image" src="https://github.com/user-attachments/assets/5d851058-9e61-4726-b600-995a7ec539a1" />
+[Diagra de Atividades - Agendar consulta.pdf](https://github.com/user-attachments/files/29074870/Diagra.de.Atividades.-.Agendar.consulta.pdf)
+
+<img width="878" height="716" alt="image" src="https://github.com/user-attachments/assets/3e6d6b77-494e-4167-973d-ec984b2c2aaa" />
+[Diagrama de Atividades - Cancelar Consulta.pdf](https://github.com/user-attachments/files/29074887/Diagrama.de.Atividades.-.Cancelar.Consulta.pdf)
+
+<img width="671" height="692" alt="image" src="https://github.com/user-attachments/assets/82e27ca4-9169-4f2c-92c6-1560f97a3713" />
+[Diagrama de Atividades - Criar Escala Médica.pdf](https://github.com/user-attachments/files/29074903/Diagrama.de.Atividades.-.Criar.Escala.Medica.pdf)
+
+<img width="780" height="755" alt="image" src="https://github.com/user-attachments/assets/81cfb903-2672-4e9f-bf4c-8f4b7bec8e5b" />
+[Diagrama de Atividades - Realizar Consulta.pdf](https://github.com/user-attachments/files/29074911/Diagrama.de.Atividades.-.Realizar.Consulta.pdf)
 
 Essa visão atende preocupações ligadas a:
 
