@@ -54,8 +54,7 @@ Seguranca / controle de acesso:
 1) Abra o terminal na pasta "docker" do projeto.
 2) Execute:
 
-    1º) docker compose up --build -d
-2º) na pasta do frontend : python -m http.server 8000	
+     docker compose up --build -d
 
    - "--build" reconstroi as imagens (use sempre que o codigo mudar).
    - "-d" sobe em segundo plano (modo "detached").
