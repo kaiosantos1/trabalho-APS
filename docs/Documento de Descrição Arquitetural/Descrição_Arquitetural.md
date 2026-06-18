@@ -109,6 +109,10 @@ Relacionada à organização interna do sistema.
 
 Representada pelo diagrama de classes e separação em microsserviços.
 
+<img width="1089" height="775" alt="image" src="https://github.com/user-attachments/assets/f6a24326-d730-4d34-ad2e-ded2ea08d1c1" />
+[Diagrama de Classes - Sistema de Gestão Clínica (1).pdf](https://github.com/user-attachments/files/29075237/Diagrama.de.Classes.-.Sistema.de.Gestao.Clinica.1.pdf)
+
+
 Endereça:
 
 * modularidade;
