@@ -150,4 +150,4 @@ backend + MongoDB). Itens em aberto: API Gateway e deploy em produção.
 - [x] Containerização com Docker (inclui o frontend)
 - [x] Configuração do ambiente (Docker Compose)
 - [x] Testes integrados (fluxo completo + cenários de tolerância a falhas validados)
-- [ ] Deploy — projeto pronto para deploy; instruções de execução e de publicação em VM gratuita em `docker/instrucoes-para-rodar-a-aplicacao.txt`
+- [ ] Deploy — projeto pronto para deploy;
