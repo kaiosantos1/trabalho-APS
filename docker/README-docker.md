@@ -5,6 +5,7 @@ MongoDB independente por serviço.
 
 ### Estrutura
 
+- `frontend` (Nginx) servindo o site
 - `cadastro-service` com seu próprio MongoDB
 - `agendamento-service` com seu próprio MongoDB
 - `faturamento-service` com seu próprio MongoDB
@@ -19,6 +20,7 @@ docker compose up --build
 
 ### Portas expostas
 
+- Frontend (site): `8080`
 - Cadastro Service: `5001`
 - Faturamento Service: `5002`
 - Agendamento Service: `5003`
@@ -36,6 +38,8 @@ docker compose up --build
 - `CADASTRO_URL`
 - `FATURAMENTO_URL`
 - `SERVICOS_TIMEOUT`
+- `JWT_SECRET` (assinatura do token de login)
+- `INTERNAL_TOKEN` (autenticação das chamadas internas entre serviços)
 
 ### Observações
 

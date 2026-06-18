@@ -121,7 +121,7 @@ Endereça:
 
 Relacionada ao controle de acesso baseado em perfis.
 
-Utiliza o modelo RBAC conceitual adotado pelo sistema.
+Implementada via RBAC: autenticação com token JWT e autorização por perfil nas operações de escrita dos serviços.
 
 Endereça:
 

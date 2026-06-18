@@ -82,14 +82,14 @@ registro das rotas; a lógica de cada endpoint fica nos módulos específicos.
 **Por que foi utilizado:** reduz acoplamento, melhora a legibilidade e facilita a
 evolução.
 
-## 3.3. Repositório em Memória — Estrutura inicial
+## 3.3. Repositório (Repository Pattern) — Implementado
 
-**Onde foi aplicado:** Agendamento Service (`repositorio.py`).
+**Onde foi aplicado:** cada serviço possui um `repositorio.py`.
 
-**Descrição:** o Agendamento centraliza o acesso aos dados (consultas, escalas e
-solicitações) em um módulo único, isolando o armazenamento das rotas. É uma
-estrutura inicial no sentido do **Repository Pattern**: quando a persistência
-definitiva for adotada, apenas esse módulo precisará mudar.
+**Descrição:** cada serviço centraliza o acesso ao **MongoDB** em um módulo de
+repositório único (`listar`, `buscar`, `inserir`, `atualizar`, `remover`),
+isolando a persistência das rotas. As regras de negócio ficam nas rotas e o acesso
+ao banco fica encapsulado no repositório, facilitando manutenção e testes.
 
 ---
 
@@ -227,7 +227,6 @@ inicialização, com um único comando.
 > Itens ainda não implementados.
 
 - **DTO (Data Transfer Object):** separar objetos de API dos objetos internos.
-- **Repository Pattern completo:** abstrair a persistência definitiva.
 - **Circuit Breaker / Retry:** resiliência adicional entre serviços.
 
 ---
@@ -260,10 +259,11 @@ inicialização, com um único comando.
 
 O projeto APS Health evoluiu da fase de modelagem para uma implementação
 funcional: três microsserviços independentes, comunicando-se via REST/JSON, com
-isolamento de dados por serviço e tolerância a falhas implementada (timeout e
-degradação graciosa).
+persistência em MongoDB (um banco por serviço), autenticação/autorização por
+perfil (RBAC), tolerância a falhas (timeout e degradação graciosa) e
+containerização completa com Docker Compose.
 
 Os padrões já aplicados favorecem modularidade, separação de responsabilidades,
 baixo acoplamento e organização por domínio de negócio. Os itens ainda planejados
-— persistência definitiva, API Gateway, autenticação/autorização e containerização
-— estão claramente identificados e direcionam a continuidade do desenvolvimento.
+— API Gateway, Circuit Breaker/Retry e DTO — estão claramente identificados e
+direcionam a continuidade do desenvolvimento.
