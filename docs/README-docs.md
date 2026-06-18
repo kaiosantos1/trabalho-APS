@@ -12,6 +12,9 @@ Documentação relacionada à organização arquitetural do sistema.
 * `microsservicos.md`
   Descrição dos microsserviços do sistema, suas responsabilidades, domínios de negócio, comunicação entre serviços e principais endpoints.
 
+* `api-contracts.md`
+  Contratos das APIs REST efetivamente implementadas, incluindo autenticação/RBAC, endpoints por entidade e comunicação entre serviços.
+
 ---
 
 ## `/diagramas`
@@ -93,8 +96,8 @@ Conteúdo abordado:
 * Arquitetura de Microsserviços
 * Database per Service
 * API REST
-* API Gateway
-* RBAC (conceitual)
+* API Gateway (planejado)
+* RBAC (implementado: JWT + perfis)
 * Padrões planejados para evolução futura
 
 ---
@@ -151,7 +154,8 @@ Conteúdo abordado:
 | Diagrama de Classes                 | Completo  |
 | Documento de Padrões                | Completo  |
 | Documento de Descrição Arquitetural | Completo  |
-| Backend                             | Em Planejamento |
-| Frontend                            | Em Planejamento |
+| Backend (3 microsserviços + MongoDB)| Implementado |
+| Frontend (áreas por perfil)         | Implementado |
+| API Contracts                       | Completo  |
 
 ---
