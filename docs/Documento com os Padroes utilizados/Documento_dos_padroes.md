@@ -207,6 +207,9 @@ na lista `exames_solicitados` de cada consulta.
 ---
 
 # 8. Padrões de Implantação
+<img width="920" height="568" alt="image" src="https://github.com/user-attachments/assets/80e53e88-2696-4bcf-92d1-86c341068f24" />
+[Diagrama de Implantação.pdf](https://github.com/user-attachments/files/29074975/Diagrama.de.Implantacao.pdf)
+
 
 ## 8.1. Containerização com Docker — Implementado
 
